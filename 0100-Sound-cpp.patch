@@ -1,0 +1,11 @@
+diff -uNrp DxLibMake.old/Linux/DxSoundLinux.cpp DxLibMake.new/Linux/DxSoundLinux.cpp
+--- DxLibMake.old/Linux/DxSoundLinux.cpp	2021-10-04 22:29:38.405412187 +0900
++++ DxLibMake.new/Linux/DxSoundLinux.cpp	2021-07-16 00:20:20.047988957 +0900
+@@ -16,7 +16,6 @@
+ // インクルード----------------------------------------------------------------
+ #include "DxSoundLinux.h"
+ #include "DxFileLinux.h"
+-#include "DxSystemLinux_ObjC.h"
+ #include "../DxSound.h"
+ #include "../DxSystem.h"
+ #include "../DxMemory.h"

@@ -1,0 +1,7 @@
+DxLibのコード上で依存ライブラリの内部ヘッダーを直接呼んでしまっているので
+libvorbisとlibjpeg(libjpeg-turboでもいいかも)のソースのヘッダーが必要です
+以下を見つけてディレクトリに直接おいてください
+
+libvorbis-〜/lib/os.h
+libvorbis-〜/lib/misc.h
+jpeg-〜/jinclude.h
