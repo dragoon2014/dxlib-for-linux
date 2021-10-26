@@ -1,6 +1,6 @@
 diff -uNrp DxLibMake.old/Linux/DxLogLinux.cpp DxLibMake.new/Linux/DxLogLinux.cpp
---- DxLibMake.old/Linux/DxLogLinux.cpp	2021-10-04 22:34:38.954813943 +0900
-+++ DxLibMake.new/Linux/DxLogLinux.cpp	2021-10-04 22:34:27.058912471 +0900
+--- DxLibMake.old/Linux/DxLogLinux.cpp
++++ DxLibMake.new/Linux/DxLogLinux.cpp
 @@ -24,8 +24,8 @@
  #include "../DxMemory.h"
  #include "../DxGraphics.h"

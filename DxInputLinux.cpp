@@ -2,7 +2,7 @@
 // 
 // 		ＤＸライブラリ		Linux用入力情報プログラム
 // 
-//  	Ver 3.22c
+//  	Ver 3.22e
 // 
 //-----------------------------------------------------------------------------
 
@@ -139,6 +139,12 @@ extern int CheckJoypadVibrationEnable_PF( INPUTPADDATA *pad, int EffectIndex )
 extern int CheckJoypadXInput_PF( int InputType )
 {
 	return FALSE ;
+}
+
+// ジョイパッドのタイプを取得する( 戻り値  -1:エラー  0以上:ジョイパッドタイプ( DX_PADTYPE_XBOX_360 など ) )
+extern int GetJoypadType_PF( int InputType )
+{
+	return DX_PADTYPE_OTHER ;
 }
 
 // マウスのボタンの状態を得る処理の環境依存処理

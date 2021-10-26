@@ -1,6 +1,6 @@
 diff -uNrp DxLibMake.old/DxGraphicsFilter.cpp DxLibMake.new/DxGraphicsFilter.cpp
---- DxLibMake.old/DxGraphicsFilter.cpp	2021-10-04 23:49:32.933260452 +0900
-+++ DxLibMake.new/DxGraphicsFilter.cpp	2021-10-04 23:56:49.936051932 +0900
+--- DxLibMake.old/DxGraphicsFilter.cpp
++++ DxLibMake.new/DxGraphicsFilter.cpp
 @@ -3102,10 +3102,10 @@ extern int GraphFilter_Level( GRAPHFILTE
  	// シェーダーが使えるかどうかで処理を分岐
  	if( GSYS.HardInfo.UseShader == TRUE )

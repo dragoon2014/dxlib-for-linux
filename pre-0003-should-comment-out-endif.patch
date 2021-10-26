@@ -1,0 +1,13 @@
+diff --git a/DxLibMake/DxHandle.h b/DxLibMake/DxHandle.h
+index 002134d..8c9036b 100644
+--- a/DxLibMake/DxHandle.h
++++ b/DxLibMake/DxHandle.h
+@@ -15,7 +15,7 @@
+ 
+ #ifndef DX_NON_ASYNCLOAD
+ 	#include "DxASyncLoad.h"
+-#endif DX_NON_ASYNCLOAD
++#endif // DX_NON_ASYNCLOAD
+ 
+ #ifndef DX_NON_NAMESPACE
+ 

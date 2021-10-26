@@ -2,7 +2,7 @@
 // 
 // 		ＤＸライブラリ		Linux用システムプログラム
 // 
-// 				Ver 3.22c
+// 				Ver 3.22e
 // 
 // -------------------------------------------------------------------------------
 
@@ -223,9 +223,9 @@ extern int NS_DxLib_Init( void )
 
 	// ランダム係数を初期化
 #ifndef DX_NON_MERSENNE_TWISTER
-	srandMT( ( unsigned int )NS_GetNowCount() ) ;
+	srandMT( ( unsigned int )NS_GetNowCount( FALSE ) ) ;
 #else
-	srand( NS_GetNowCount() ) ;
+	srand( NS_GetNowCount( FALSE ) ) ;
 #endif
 
 #ifndef DX_NON_ASYNCLOAD
@@ -448,7 +448,7 @@ extern int NS_GetNowCount( int /*UseRDTSCFlag*/ )
 	LONGLONG ResultLL ;
 	int Result ;
 
-	ResultLL  = NS_GetNowHiPerformanceCount() / 1000 ;
+	ResultLL  = NS_GetNowHiPerformanceCount( FALSE ) / 1000 ;
 	ResultLL &= 0x7fffffff ;
 	Result    = ( int )ResultLL ;
 
@@ -471,7 +471,7 @@ extern LONGLONG NS_GetNowHiPerformanceCount( int /*UseRDTSCFlag*/ )
 // OSが提供する高精度カウンタの現在の値を得る
 extern ULONGLONG NS_GetNowSysPerformanceCount( void )
 {
-	return ( ULONGLONG )NS_GetNowHiPerformanceCount() ;
+	return ( ULONGLONG )NS_GetNowHiPerformanceCount( FALSE ) ;
 }
 
 // OSが提供する高精度カウンタの周波数( 1秒辺りのカウント数 )を得る

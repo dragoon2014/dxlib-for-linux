@@ -1,6 +1,6 @@
 diff -uNrp DxLibMake.old/DxLog.cpp DxLibMake.new/DxLog.cpp
---- DxLibMake.old/DxLog.cpp	2021-01-30 17:14:02.000000000 +0900
-+++ DxLibMake.new/DxLog.cpp	2021-07-15 02:16:44.965517902 +0900
+--- DxLibMake.old/DxLog.cpp
++++ DxLibMake.new/DxLog.cpp
 @@ -873,7 +873,7 @@ extern int printfDx_VaList( const TCHAR
  #else
  	TCHAR_TO_WCHAR_T_STRING_ONE_BEGIN( String, return -1 )

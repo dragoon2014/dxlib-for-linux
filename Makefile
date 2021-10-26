@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-DXLIB_VER := 3_22c
+DXLIB_VER := 3_22e
 
 # 環境によっては変更してください
 RENAME := rename.ul
@@ -117,6 +117,13 @@ lib: $(OBJS)
 
 .PHONY: patch
 patch: extract-source
+	# 上流バグ対応:終了判定変数名ミス
+	patch -uNp1 --no-backup-if-mismatch -d . < pre-0001-wrong-varname-for-finalize.patch
+	# 上流バグ対応:クリティカルセクション解放忘れ
+	patch -uNp1 --no-backup-if-mismatch -d . < pre-0002-forgot-unlock-critical-section.patch
+	# 上流バグ対応:#endifのコメントアウト忘れ
+	patch -uNp1 --no-backup-if-mismatch -d . < pre-0003-should-comment-out-endif.patch
+	
 	# Linux用コンパイル設定追加
 	patch -uNp1 --no-backup-if-mismatch -d DxLibMake < 0001-DxCompileConfig.patch
 	# Linux向け型定義

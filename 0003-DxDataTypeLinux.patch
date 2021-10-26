@@ -1,6 +1,6 @@
 diff -uNrp DxLibMake.old/DxDataTypeLinux.h DxLibMake.new/DxDataTypeLinux.h
---- DxLibMake.old/DxDataTypeLinux.h	2021-07-13 00:19:03.813034089 +0900
-+++ DxLibMake.new/DxDataTypeLinux.h	2021-07-13 00:17:57.981497785 +0900
+--- DxLibMake.old/DxDataTypeLinux.h
++++ DxLibMake.new/DxDataTypeLinux.h
 @@ -11,6 +11,7 @@
  
  // インクルード ------------------------------------------------------------------

@@ -1,6 +1,6 @@
 diff -uNrp DxLibMake.old/Linux/DxFileLinux.cpp DxLibMake.new/Linux/DxFileLinux.cpp
---- DxLibMake.old/Linux/DxFileLinux.cpp	2021-10-04 22:27:23.914262136 +0900
-+++ DxLibMake.new/Linux/DxFileLinux.cpp	2021-10-04 01:12:31.019434033 +0900
+--- DxLibMake.old/Linux/DxFileLinux.cpp
++++ DxLibMake.new/Linux/DxFileLinux.cpp
 @@ -10,8 +10,6 @@
  #define DX_MAKE
  
