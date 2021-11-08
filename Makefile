@@ -96,6 +96,7 @@ SAMPLES := $(addprefix samples/,\
         sample4_mainloop \
         sample5_sound \
         sample6_graph \
+        sample7_printfdx \
     )
 
 .PHONY: all
