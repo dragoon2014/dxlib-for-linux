@@ -120,6 +120,8 @@ patch: extract-source
 	patch -uNp1 --no-backup-if-mismatch -d . < pre-0002-forgot-unlock-critical-section.patch
 	# 上流バグ対応:#endifのコメントアウト忘れ
 	patch -uNp1 --no-backup-if-mismatch -d . < pre-0003-should-comment-out-endif.patch
+	# 上流改良:jinclude.hへの依存解除
+	patch -uNp1 --no-backup-if-mismatch -d . < pre-0004-no-longer-required-jinclude-h.patch
 	
 	# Linux用コンパイル設定追加
 	patch -uNp1 --no-backup-if-mismatch -d DxLibMake < 0001-DxCompileConfig.patch
