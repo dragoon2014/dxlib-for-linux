@@ -3512,7 +3512,13 @@ extern	int		Graphics_Linux_Device_Create( void )
 	Window xwin = XCreateSimpleWindow(xdpy, DefaultRootWindow(xdpy), 0, 0, 640, 480, 1, BlackPixel(xdpy, 0), WhitePixel(xdpy, 0));
 	GLINUX.Device.Screen.XWindow = xwin;
 	XSetWMProtocols(xdpy, xwin, &GLINUX.Device.Screen._atom_WM_DELETE_WINDOW, 1);
-	XSelectInput(xdpy, xwin, 0xffffff);
+	XSelectInput(xdpy, xwin,
+        ButtonPressMask |
+        ButtonReleaseMask |
+        PointerMotionMask |
+        KeyPressMask |
+        KeyReleaseMask |
+        ExposureMask );
 	XMapWindow(xdpy, xwin);
 	XFlush(xdpy);
 	GLINUX.Device.Screen.Surface = eglCreateWindowSurface( GLINUX.Device.Screen.Display, config, xwin, NULL ) ;

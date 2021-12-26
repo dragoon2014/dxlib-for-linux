@@ -770,9 +770,31 @@ extern int NS_ProcessMessage( void )
 			{
 				return -1 ;
 			}
+			//printf("cev%d ", ev.type); fflush(stdout);
+			break ;
+		// マウスの状態
+		case ButtonPress :
+		case ButtonRelease :
+		case MotionNotify :
+		//case EnterNotify :
+		//case LeaveNotify :
+#ifndef DX_NON_INPUT
+			ProcessMouseInputEvent( ev );
+#endif // DX_NON_INPUT
+			break ;
+		// キーボードの状態
+		case KeyPress :
+		case KeyRelease :
+		//case FocusIn :
+		//case FocusOut :
+		//case KeymapNotify :
+		//case MappingNotify :
+#ifndef DX_NON_INPUT
+			ProcessKeyboardInputEvent( ev, xdpy );
+#endif // DX_NON_INPUT
 			break ;
 		default:
-			// printf("w%d ", ev.type); fflush(stdout);
+			//printf("w%d ", ev.type); fflush(stdout);
 			break ;
 		}
 	}

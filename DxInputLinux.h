@@ -15,7 +15,9 @@
 
 // インクルード ------------------------------------------------------------------
 #include "../DxLib.h"
-
+#include <X11/Xlib.h>
+#include <X11/XKBlib.h>
+#include <X11/keysym.h>
 #ifndef DX_NON_NAMESPACE
 
 namespace DxLib
@@ -54,6 +56,9 @@ struct INPUTSYSTEMDATA_PF
 // 内部大域変数宣言 --------------------------------------------------------------
 
 // 関数プロトタイプ宣言-----------------------------------------------------------
+
+extern int ProcessMouseInputEvent( XEvent ev );
+extern int ProcessKeyboardInputEvent( XEvent ev, Display *dpy );
 
 #ifndef DX_NON_NAMESPACE
 

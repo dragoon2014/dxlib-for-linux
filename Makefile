@@ -22,18 +22,13 @@ CXXFLAGS := -g -O0 \
 #-DDX_NON_OGGVORBIS \
 
 # 要不要に応じて変更してください
-LDFLAG_LIBS := \
-    -lEGL -lGL -lX11 \
-    -ljpeg \
-    -logg \
-    -lopenal \
-    -lopus -lopusfile -lopusurl \
-    -lpng \
-    -lpthread \
-    -ltheora -ltheoradec -ltheoraenc \
-    -ltiff -ltiffxx \
-    -lvorbis -lvorbisenc -lvorbisfile \
-    -lz \
+DEP_LIBS := \
+    EGL GL X11 \
+    jpeg ogg openal opus opusfile opusurl \
+    png pthread theora theoradec theoraenc tiff tiffxx \
+    vorbis vorbisenc vorbisfile z \
+
+LDFLAG_LIBS := $(addprefix -l, $(DEP_LIBS))
 
 SRCS := $(addprefix DxLibMake/,\
         DxASyncLoad \
@@ -97,6 +92,7 @@ SAMPLES := $(addprefix samples/,\
         sample5_sound \
         sample6_graph \
         sample7_printfdx \
+        sample8_input \
     )
 
 .PHONY: all
