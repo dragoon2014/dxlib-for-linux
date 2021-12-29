@@ -6,12 +6,6 @@ DXライブラリをLinuxでも動作するように移植してみました。
 # 使用方法
 
 ```
-# DxLibが依存するライブラリの内部ヘッダーを直接使用しているので予め用意します。
-cd insufficient_include
-wget https://gitlab.xiph.org/xiph/vorbis/-/raw/master/lib/misc.h
-wget https://gitlab.xiph.org/xiph/vorbis/-/raw/master/lib/os.h
-cd ..
-
 # 以下でライブラリがDxLibMake/libDxLib.aに生成されます。
 # サンプルもあわせてsamples以下に生成されます。
 # 初回実行時にはDXライブラリのソースをダウンロードするのでオンラインである必要があります。
@@ -73,11 +67,20 @@ gcc -o 実行ファイル ソース.cpp \
 Xubuntu 20.04
 他ディストリビューションでも動くと思います。
 
-
 # リポジトリ自体のライセンス
 
-独自部分はMITライセンスで提供されますが
-手動および自動変換されたDXライブラリのコードが含まれています。
+独自部分はMITライセンスで提供されます、LICENSEファイルを参照してください。
+
+一部、手動および自動変換されたDXライブラリのコードが含まれています。
+
 DX Library Copyright (C) 2001-2019 Takumi Yamada.
+
+また、依存関係の都合でVorbisのヘッダーファイルが含まれています。
+
+insufficient\_include/COPYING-vorbis.txtを参照してください。
+
+pre-0004-no-longer-required-jinclude-h.patchにlibjpegの断片が含まれています。
+
+libjpeg　Copyright (C) 1991-2013, Thomas G. Lane, Guido Vollbeding.
 
 samples/assetsディレクトリ内の素材についてはASSETS\_README.txtを参照してください。
