@@ -3472,7 +3472,6 @@ extern	int		Graphics_Linux_Device_Create( void )
 	// 目的の構成の属性をここで指定します。
 	// 以下で、オンスクリーン ウィンドウと
 	// 互換性のある、各色最低 8 ビットのコンポーネントの EGLConfig を選択します
-	EGLint format ;
 	EGLint numConfigs ;
 	EGLConfig config ;
 	EGLint Major, Minor ;
@@ -3506,7 +3505,6 @@ extern	int		Graphics_Linux_Device_Create( void )
 	Minor = 0 ;
 	eglInitialize(      GLINUX.Device.Screen.Display, &Major, &Minor ) ;
 	eglChooseConfig(    GLINUX.Device.Screen.Display, attribs, &config, 1, &numConfigs ) ;
-	eglGetConfigAttrib( GLINUX.Device.Screen.Display, config, EGL_NATIVE_VISUAL_ID, &format ) ;
 
 
 	Window xwin = XCreateSimpleWindow(xdpy, DefaultRootWindow(xdpy), 0, 0, 640, 480, 1, BlackPixel(xdpy, 0), WhitePixel(xdpy, 0));
