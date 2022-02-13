@@ -18,8 +18,6 @@ namespace DxLib
 extern int GetWindowSize(int *Width, int *Height);
 extern int SetMainWindowText(const TCHAR *WindowText);
 
-extern int ProcessWindowConfigureNotifyEvent( XEvent ev );
-
 
 #ifndef DX_NON_NAMESPACE
 
