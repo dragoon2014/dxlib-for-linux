@@ -86,15 +86,15 @@ SRCS := $(addprefix DxLibMake/,\
 OBJS := $(addsuffix .o,$(SRCS))
 
 SAMPLES := $(addprefix samples/,\
-        sample1_minimum \
-        sample2_string_and_shape \
-        sample3_3d_shape \
-        sample4_mainloop \
-        sample5_sound \
-        sample6_graph \
-        sample7_printfdx \
-        sample8_input \
-        sample9_window \
+        sample01_minimum \
+        sample02_string_and_shape \
+        sample03_3d_shape \
+        sample04_mainloop \
+        sample05_sound \
+        sample06_graph \
+        sample07_printfdx \
+        sample08_input \
+        sample09_window \
     )
 
 .PHONY: all
