@@ -793,6 +793,22 @@ extern int NS_ProcessMessage( void )
 			ProcessKeyboardInputEvent( ev, xdpy );
 #endif // DX_NON_INPUT
 			break ;
+		// StructureNotifyMask
+		case ConfigureNotify :
+			if(GLINUX.Device.Screen.Width != ev.xconfigure.width || GLINUX.Device.Screen.Height != ev.xconfigure.height) { // resize detect
+				GLINUX.Device.Screen.Width = ev.xconfigure.width;
+				GLINUX.Device.Screen.Height = ev.xconfigure.height;
+				Graphics_RestoreOrChangeSetupGraphSystem(1, ev.xconfigure.width, ev.xconfigure.height, 0, 0);
+
+				eglDestroySurface( GLINUX.Device.Screen.Display, GLINUX.Device.Screen.Surface ) ;
+				GLINUX.Device.Screen.Surface = eglCreateWindowSurface( GLINUX.Device.Screen.Display, GLINUX.Device.Screen.Config, GLINUX.Device.Screen.XWindow, NULL ) ;
+				if( eglMakeCurrent( GLINUX.Device.Screen.Display, GLINUX.Device.Screen.Surface, GLINUX.Device.Screen.Surface, GLINUX.Device.Screen.Context ) == EGL_FALSE )
+				{
+					DXST_LOGFILE_ADDUTF16LE( "\x65\x00\x67\x00\x6c\x00\x4d\x00\x61\x00\x6b\x00\x65\x00\x43\x00\x75\x00\x72\x00\x72\x00\x65\x00\x6e\x00\x74\x00\x20\x00\x4c\x30\x31\x59\x57\x65\x57\x30\x7e\x30\x57\x30\x5f\x30\x0a\x00\x00"/*@ L"eglMakeCurrent が失敗しました\n" @*/ ) ;
+					return -1 ;
+				}
+			}
+			break ;
 		default:
 			//printf("w%d ", ev.type); fflush(stdout);
 			break ;

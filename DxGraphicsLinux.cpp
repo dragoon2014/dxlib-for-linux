@@ -3505,9 +3505,10 @@ extern	int		Graphics_Linux_Device_Create( void )
 	Minor = 0 ;
 	eglInitialize(      GLINUX.Device.Screen.Display, &Major, &Minor ) ;
 	eglChooseConfig(    GLINUX.Device.Screen.Display, attribs, &config, 1, &numConfigs ) ;
+	GLINUX.Device.Screen.Config = config ;
 
 
-	Window xwin = XCreateSimpleWindow(xdpy, DefaultRootWindow(xdpy), 0, 0, 640, 480, 1, BlackPixel(xdpy, 0), WhitePixel(xdpy, 0));
+	Window xwin = XCreateSimpleWindow(xdpy, DefaultRootWindow(xdpy), 0, 0, GSYS.Screen.MainScreenSizeX, GSYS.Screen.MainScreenSizeY, 1, BlackPixel(xdpy, 0), BlackPixel(xdpy, 0));
 	GLINUX.Device.Screen.XWindow = xwin;
 	XSetWMProtocols(xdpy, xwin, &GLINUX.Device.Screen._atom_WM_DELETE_WINDOW, 1);
 	XSelectInput(xdpy, xwin,
@@ -3516,6 +3517,7 @@ extern	int		Graphics_Linux_Device_Create( void )
         PointerMotionMask |
         KeyPressMask |
         KeyReleaseMask |
+        StructureNotifyMask |
         ExposureMask );
 	XMapWindow(xdpy, xwin);
 	XFlush(xdpy);
@@ -17662,7 +17664,9 @@ extern	int		Graphics_ScreenFlipBase_PF( void )
 		glBindFramebuffer( GL_FRAMEBUFFER, 0 ) ;
 
 		// ビューポートをセット( 設定は Graphics_Linux_DeviceState_RefreshRenderState で戻す )
-		glViewport( DestRect.left, DestRect.top, DestRect.right - DestRect.left, DestRect.bottom - DestRect.top ) ;
+		// glViewport( DestRect.left, DestRect.top, DestRect.right - DestRect.left, DestRect.bottom - DestRect.top ) ;
+		// TODO: ウィンドウリサイズ仮対応
+		glViewport( 0, 0, GLINUX.Device.Screen.Width, GLINUX.Device.Screen.Height ) ;
 
 		// Ｚバッファを無効にする
 		Graphics_Linux_DeviceState_SetDepthEnable( FALSE ) ;

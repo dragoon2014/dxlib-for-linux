@@ -80,6 +80,7 @@ SRCS := $(addprefix DxLibMake/,\
         Linux/DxShaderCodeBin_Filter_Linux \
         Linux/DxShaderCodeBin_Model_Linux \
         Linux/DxShaderCodeBin_RgbaMix_Linux \
+        Linux/DxWindowLinux \
     )
 
 OBJS := $(addsuffix .o,$(SRCS))
@@ -93,6 +94,7 @@ SAMPLES := $(addprefix samples/,\
         sample6_graph \
         sample7_printfdx \
         sample8_input \
+        sample9_window \
     )
 
 .PHONY: all
@@ -195,8 +197,10 @@ patch: extract-source
 	patch -uNp1 --no-backup-if-mismatch -d DxLibMake < 0011-not-work-printfDxBase_WCHAR_T.patch
 	#  名前干渉
 	patch -uNp1 --no-backup-if-mismatch -d DxLibMake < 0012-Always-already-defined.patch
-	#  Linux専用関数(まだない)
+	#  Linux専用関数
 	cp -a DxFunctionLinux.h DxLibMake
+	cp -a DxWindowLinux.h DxLibMake/Linux
+	cp -a DxWindowLinux.cpp DxLibMake/Linux
 	#  Android特化コードを削除
 	cp -a DxSystemLinux.h DxLibMake/Linux
 	cp -a DxInputLinux.h DxLibMake/Linux
