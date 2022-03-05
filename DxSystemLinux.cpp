@@ -766,11 +766,11 @@ extern int NS_ProcessMessage( void )
 		switch( ev.type )
 		{
 		case ClientMessage :
-			if( ev.xclient.data.l[0] == GLINUX.Device.Screen._atom_WM_DELETE_WINDOW )
+			if( ev.xclient.message_type == GLINUX.Device.Screen._atom_WM_PROTOCOLS
+					&& ev.xclient.data.l[0] == GLINUX.Device.Screen._atom_WM_DELETE_WINDOW )
 			{
 				return -1 ;
 			}
-			//printf("cev%d ", ev.type); fflush(stdout);
 			break ;
 		// マウスの状態
 		case ButtonPress :

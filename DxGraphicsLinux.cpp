@@ -36,7 +36,6 @@
 #include <GLES/gl.h>
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
-#include <X11/Xlib.h>
 //#include <error.h>
 
 #ifndef DX_NON_NAMESPACE
@@ -3497,6 +3496,7 @@ extern	int		Graphics_Linux_Device_Create( void )
 	{
 		return -1;
 	}
+	GLINUX.Device.Screen._atom_WM_PROTOCOLS = XInternAtom(xdpy, "WM_PROTOCOLS", False) ;
 	GLINUX.Device.Screen._atom_WM_DELETE_WINDOW = XInternAtom(xdpy, "WM_DELETE_WINDOW", False) ;
 	GLINUX.Device.Screen.Display = eglGetDisplay( xdpy ) ;
 

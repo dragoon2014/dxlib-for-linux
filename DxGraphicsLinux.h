@@ -917,6 +917,7 @@ struct GRAPHICS_HARDDATA_LINUX_SCREENINFO
 	// 以下 X11 バックエンド用
 	_XDisplay *					XDisplay ;	// Display （実際の型は Display * が適切であるが名前が衝突するため内部名を使用）
 	Window						XWindow ;	// Window
+	Atom						_atom_WM_PROTOCOLS ;	// 終了判定用Atom
 	Atom						_atom_WM_DELETE_WINDOW ;	// 終了判定用Atom
 	EGLConfig					Config ;	// EGLのConfig値、Surface再作成に使用
 } ;
