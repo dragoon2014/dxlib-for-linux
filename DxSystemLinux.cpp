@@ -771,6 +771,122 @@ extern int NS_ProcessMessage( void )
 			{
 				return -1 ;
 			}
+			else if( ev.xclient.message_type == GLINUX.Device.Screen._atom_XdndEnter )
+			{
+				GLINUX.Device.Screen._xdnd_cache_sourceWindow = ev.xclient.data.l[0];
+				if( ev.xclient.data.l[1] & 0x1 ){
+					Atom retType;
+					int retFormat;
+					unsigned long retNum;
+					unsigned long leftByte;
+					unsigned char* rets;
+					XGetWindowProperty( xdpy, ev.xclient.data.l[0], GLINUX.Device.Screen._atom_XdndTypeList, 0, 0x7fffffff, False, AnyPropertyType, &retType, &retFormat, &retNum, &leftByte, &rets );
+					Atom* atoms = (Atom*)rets;
+					for( int i=0; i<retNum; i++ ){
+						GLINUX.Device.Screen._xdnd_cache_itsForMe |= ( atoms[i] == GLINUX.Device.Screen._atom_text_uri_list ? 1 : 0 );
+					}
+					XFree( rets );
+				}else{
+					for( int i=2; i<=4; i++ ){
+						if( ev.xclient.data.l[i] ){
+							GLINUX.Device.Screen._xdnd_cache_itsForMe |= ( ev.xclient.data.l[i] == GLINUX.Device.Screen._atom_text_uri_list ? 1 : 0 );
+						}
+					}
+				}
+			}
+			else if( ev.xclient.message_type == GLINUX.Device.Screen._atom_XdndLeave )
+			{
+				GLINUX.Device.Screen._xdnd_cache_itsForMe = 0;
+				GLINUX.Device.Screen._xdnd_cache_sourceWindow = 0;
+			}
+			else if( ev.xclient.message_type == GLINUX.Device.Screen._atom_XdndPosition )
+			{
+				XClientMessageEvent reply;
+				reply.type = ClientMessage;
+				reply.serial = 0;
+				reply.send_event = 0;
+				reply.display = xdpy;
+				reply.window = ev.xclient.data.l[0];
+				reply.message_type = GLINUX.Device.Screen._atom_XdndStatus;
+				reply.format = 32;
+				reply.data.l[0] = GLINUX.Device.Screen.XWindow;
+				reply.data.l[1] = 1;
+				reply.data.l[2] = 0;
+				reply.data.l[3] = 0;
+				reply.data.l[4] = ev.xclient.data.l[4];  // TODO: only allow XdndActionCopy
+				XSendEvent( xdpy, ev.xclient.data.l[0], False, NoEventMask, (XEvent*)&reply );
+				XFlush( xdpy );
+			}
+			else if( ev.xclient.message_type == GLINUX.Device.Screen._atom_XdndDrop )
+			{
+				if( GLINUX.Device.Screen._xdnd_cache_itsForMe ){
+					GLINUX.Device.Screen._xdnd_cache_itsForMe = 0;
+					XConvertSelection( xdpy, GLINUX.Device.Screen._atom_XdndSelection, GLINUX.Device.Screen._atom_text_uri_list, XA_PRIMARY, GLINUX.Device.Screen.XWindow, ev.xclient.data.l[2] );
+				}else{
+					XClientMessageEvent reply;
+					reply.type = ClientMessage;
+					reply.serial = 0;
+					reply.send_event = 0;
+					reply.display = xdpy;
+					reply.window = ev.xclient.data.l[0];
+					reply.message_type = GLINUX.Device.Screen._atom_XdndFinished;
+					reply.format = 32;
+					reply.data.l[0] = GLINUX.Device.Screen.XWindow;
+					reply.data.l[1] = 0;
+					reply.data.l[2] = 0;
+					reply.data.l[3] = 0;
+					reply.data.l[4] = 0;
+					XSendEvent( xdpy, ev.xclient.data.l[0], False, NoEventMask, (XEvent*)&reply );
+					XFlush( xdpy );
+				}
+			}
+			else
+			{
+				//printf("xclient %d %d %08x %08x %08x %08x %08x\n", ev.xclient.message_type, ev.xclient.format, ev.xclient.data.l[0], ev.xclient.data.l[1], ev.xclient.data.l[2], ev.xclient.data.l[3], ev.xclient.data.l[4]); fflush(stdout);
+			}
+			break ;
+		case SelectionNotify :
+			//printf("selnotifyev: reqwin:%d asel:%d tgt:%d prop:%d\n", ev.xselection.requestor, ev.xselection.selection, ev.xselection.target, ev.xselection.property);
+			{
+				Atom retType;
+				int retFormat;
+				unsigned long retNum;
+				unsigned long leftByte;
+				unsigned char* rets;
+				XGetWindowProperty( xdpy, ev.xselection.requestor, XA_PRIMARY, 0, 0x7fffffff, False, AnyPropertyType, &retType, &retFormat, &retNum, &leftByte, &rets );
+				if( GLINUX.Device.Screen._xdnd_bufPtr ){
+					GLINUX.Device.Screen._xdnd_bufLen += (size_t)retNum;
+					GLINUX.Device.Screen._xdnd_bufPtr = (char*)DXREALLOC( GLINUX.Device.Screen._xdnd_bufPtr, GLINUX.Device.Screen._xdnd_bufLen );
+				}else{
+					GLINUX.Device.Screen._xdnd_bufLen = (size_t)retNum;
+					GLINUX.Device.Screen._xdnd_bufPtr = (char*)DXALLOC( GLINUX.Device.Screen._xdnd_bufLen );
+				}
+				if( !GLINUX.Device.Screen._xdnd_bufPtr ){
+					return -1;
+				}
+				_MEMCPY( GLINUX.Device.Screen._xdnd_bufPtr+GLINUX.Device.Screen._xdnd_bufLen-(size_t)retNum, rets, (size_t)retNum );
+				for( int i=0; i<retNum; i++ ){
+					GLINUX.Device.Screen._xdnd_bufNum += rets[i] == '\n' ? 1 : 0;
+				}
+				//printf("---(%zu)\n%.*s---\n", GLINUX.Device.Screen._xdnd_bufLen, GLINUX.Device.Screen._xdnd_bufLen, GLINUX.Device.Screen._xdnd_bufPtr);
+
+				XClientMessageEvent reply;
+				reply.type = ClientMessage;
+				reply.serial = 0;
+				reply.send_event = 0;
+				reply.display = xdpy;
+				reply.window = GLINUX.Device.Screen._xdnd_cache_sourceWindow;
+				reply.message_type = GLINUX.Device.Screen._atom_XdndFinished;
+				reply.format = 32;
+				reply.data.l[0] = GLINUX.Device.Screen.XWindow;
+				reply.data.l[1] = 1;
+				reply.data.l[2] = 0;
+				reply.data.l[3] = 0;
+				reply.data.l[4] = 0;
+				XSendEvent( xdpy, GLINUX.Device.Screen._xdnd_cache_sourceWindow, False, NoEventMask, (XEvent*)&reply );
+				XFlush( xdpy );
+				XFree( rets );
+			}
 			break ;
 		// マウスの状態
 		case ButtonPress :

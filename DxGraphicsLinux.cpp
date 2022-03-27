@@ -3498,6 +3498,22 @@ extern	int		Graphics_Linux_Device_Create( void )
 	}
 	GLINUX.Device.Screen._atom_WM_PROTOCOLS = XInternAtom(xdpy, "WM_PROTOCOLS", False) ;
 	GLINUX.Device.Screen._atom_WM_DELETE_WINDOW = XInternAtom(xdpy, "WM_DELETE_WINDOW", False) ;
+	GLINUX.Device.Screen._atom_XdndAware = XInternAtom(xdpy, "XdndAware", False) ;
+	GLINUX.Device.Screen._atom_XdndEnter = XInternAtom(xdpy, "XdndEnter", False) ;
+	GLINUX.Device.Screen._atom_XdndLeave = XInternAtom(xdpy, "XdndLeave", False) ;
+	GLINUX.Device.Screen._atom_XdndPosition = XInternAtom(xdpy, "XdndPosition", False) ;
+	GLINUX.Device.Screen._atom_XdndStatus = XInternAtom(xdpy, "XdndStatus", False) ;
+	GLINUX.Device.Screen._atom_XdndFinished = XInternAtom(xdpy, "XdndFinished", False) ;
+	GLINUX.Device.Screen._atom_XdndDrop = XInternAtom(xdpy, "XdndDrop", False) ;
+	GLINUX.Device.Screen._atom_XdndTypeList = XInternAtom(xdpy, "XdndTypeList", False) ;
+	GLINUX.Device.Screen._atom_XdndActionCopy = XInternAtom(xdpy, "XdndActionCopy", False) ;
+	GLINUX.Device.Screen._atom_XdndSelection = XInternAtom(xdpy, "XdndSelection", False) ;
+	GLINUX.Device.Screen._atom_text_uri_list = XInternAtom(xdpy, "text/uri-list", False) ;
+	GLINUX.Device.Screen._xdnd_cache_itsForMe = 0;
+	GLINUX.Device.Screen._xdnd_cache_sourceWindow = 0;
+	GLINUX.Device.Screen._xdnd_bufPtr = NULL;
+	GLINUX.Device.Screen._xdnd_bufLen = 0;
+	GLINUX.Device.Screen._xdnd_bufPos = 0;
 	GLINUX.Device.Screen.Display = eglGetDisplay( xdpy ) ;
 
 	// EGL を初期化

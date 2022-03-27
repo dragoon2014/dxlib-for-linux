@@ -21,6 +21,7 @@
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
 #include <X11/Xlib.h>
+#include <X11/Xatom.h>
 #include "DxShader_DataType_Linux.h"
 #include "DxShader_FS_Linux.h"
 #include "DxShader_VS_Linux.h"
@@ -919,6 +920,23 @@ struct GRAPHICS_HARDDATA_LINUX_SCREENINFO
 	Window						XWindow ;	// Window
 	Atom						_atom_WM_PROTOCOLS ;	// 終了判定用Atom
 	Atom						_atom_WM_DELETE_WINDOW ;	// 終了判定用Atom
+	Atom						_atom_XdndAware ;	// ドラッグアンドドロップ用Atom
+	Atom						_atom_XdndEnter ;	// ドラッグアンドドロップ用Atom
+	Atom						_atom_XdndLeave ;	// ドラッグアンドドロップ用Atom
+	Atom						_atom_XdndPosition ;	// ドラッグアンドドロップ用Atom
+	Atom						_atom_XdndStatus ;	// ドラッグアンドドロップ用Atom
+	Atom						_atom_XdndFinished ;	// ドラッグアンドドロップ用Atom
+	Atom						_atom_XdndDrop ;	// ドラッグアンドドロップ用Atom
+	Atom						_atom_XdndTypeList ;	// ドラッグアンドドロップ用Atom
+	Atom						_atom_XdndActionCopy ;	// ドラッグアンドドロップ用Atom
+	Atom						_atom_XdndSelection ;	// ドラッグアンドドロップ用Atom
+	Atom						_atom_text_uri_list ;	// ドラッグアンドドロップ用Atom
+	bool						_xdnd_cache_itsForMe ;	// ドラッグアンドドロップ用キャッシュ
+	Window						_xdnd_cache_sourceWindow ;	// ドラッグアンドドロップ用キャッシュ
+	char*						_xdnd_bufPtr ;	// ドラッグアンドドロップ用バッファ:ポインタ
+	size_t						_xdnd_bufLen ;	// ドラッグアンドドロップ用バッファ:現在のバッファ長
+	size_t						_xdnd_bufPos ;	// ドラッグアンドドロップ用バッファ:処理済みの位置
+	size_t						_xdnd_bufNum ;	// ドラッグアンドドロップ用バッファ:残りファイル数
 	EGLConfig					Config ;	// EGLのConfig値、Surface再作成に使用
 } ;
 

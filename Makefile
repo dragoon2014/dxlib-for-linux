@@ -95,6 +95,7 @@ SAMPLES := $(addprefix samples/,\
         sample07_printfdx \
         sample08_input \
         sample09_window \
+        sample10_dnd \
     )
 
 .PHONY: all
