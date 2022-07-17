@@ -2,7 +2,7 @@
 // 
 // 		ＤＸライブラリ		Linux用システムプログラム
 // 
-// 				Ver 3.22e
+// 				Ver 3.23b
 // 
 // -------------------------------------------------------------------------------
 
@@ -552,59 +552,6 @@ extern int NS_GetDateTime( DATEDATA *DateBuf )
 
 
 
-// 乱数取得
-
-#ifndef DX_NON_MERSENNE_TWISTER
-
-// 乱数の初期値を設定する
-extern int NS_SRand( int Seed )
-{
-	// 初期値セット
-	srandMT( ( unsigned int )Seed ) ;
-
-	// 終了
-	return 0 ;
-}
-
-// 乱数を取得する( RandMax : 返って来る値の最大値 )
-extern int NS_GetRand( int RandMax )
-{
-	int Result ;
-	LONGLONG RandMaxLL ;
-
-	RandMaxLL = RandMax ;
-	RandMaxLL ++ ;
-	Result = ( int )( ( ( LONGLONG )randMT() * RandMaxLL ) >> 32 ) ;
-
-	return Result ;
-}
-
-#else // DX_NON_MERSENNE_TWISTER
-
-// 乱数の初期値を設定する
-extern int NS_SRand( int Seed )
-{
-	// 初期値セット
-	srand( Seed ) ;
-
-	// 終了
-	return 0 ;
-}
-
-// 乱数を取得する( RandMax : 返って来る値の最大値 )
-extern int NS_GetRand( int RandMax )
-{
-	int Result ;
-	LONGLONG RandMaxLL ;
-
-	RandMaxLL = RandMax ;
-	RandMaxLL ++ ;
-	Result = ( int )( ( ( LONGLONG )rand() * RandMaxLL ) / ( ( LONGLONG )RAND_MAX + 1 ) ) ;
-
-	return Result ;
-}
-
-#endif // DX_NON_MERSENNE_TWISTER
 
 // バッテリー関連
 
@@ -737,6 +684,11 @@ extern int NS_ProcessMessage( void )
 
 	// メモリ関係の周期的処理を行う
 	MemoryProcess() ;
+
+#ifndef DX_NON_SOUND
+	// サウンド関係の周期的処理を行う
+	ProcessSoundSystem() ;
+#endif // DX_NON_SOUND
 
 #ifndef DX_NON_GRAPHICS
 	// 画面関係の周期処理を行う

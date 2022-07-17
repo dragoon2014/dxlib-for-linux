@@ -79,8 +79,4 @@ DX Library Copyright (C) 2001-2019 Takumi Yamada.
 
 insufficient\_include/COPYING-vorbis.txtを参照してください。
 
-pre-0004-no-longer-required-jinclude-h.patchにlibjpegの断片が含まれています。
-
-libjpeg　Copyright (C) 1991-2013, Thomas G. Lane, Guido Vollbeding.
-
 samples/assetsディレクトリ内の素材についてはASSETS\_README.txtを参照してください。

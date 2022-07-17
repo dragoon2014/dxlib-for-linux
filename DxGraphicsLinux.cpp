@@ -2,7 +2,7 @@
 // 
 // 		ＤＸライブラリ		描画処理プログラム( Linux )
 // 
-//  	Ver 3.22e
+//  	Ver 3.23b
 // 
 //-----------------------------------------------------------------------------
 
@@ -15309,6 +15309,183 @@ extern	int		Graphics_Hardware_DrawLineSet_PF( const LINEDATA *LineData, int Num 
 	return 0 ;
 }
 
+// ハードウエアアクセラレータ使用版 DrawBoxSet
+extern	int		Graphics_Hardware_DrawBoxSet_PF( const RECTDATA *RectData, int Num )
+{
+	int i ;
+	VERTEX_NOTEX_2D *VectData ;
+	COLORDATA ColorData ;
+	int MaxRed, MaxGreen, MaxBlue ; 
+	unsigned int Color ;
+	int Flag ;
+	DWORD drawz ;
+
+	if( LINUX_CHECKVALID_HARDWARE == FALSE )
+	{
+		return -1 ;
+	}
+
+	// 描画待機している描画物を描画
+	DRAWSTOCKINFO
+
+	// 描画の準備
+	Flag = DX_LINUX_DRAWPREP_DIFFUSERGB ;
+	DX_LINUX_DRAWPREP_NOTEX( Flag )
+
+	// Ｚバッファに書き込むＺ値をセットする
+	drawz = *((DWORD *)&GSYS.DrawSetting.DrawZ);
+
+	// ベクトル基本ステータスを取得
+	ColorData = *( ( COLORDATA * )NS_GetDispColorData() ) ;
+	
+	if( ColorData.AlphaMask == 0xff000000 &&
+		ColorData.RedMask   == 0x000000ff &&
+		ColorData.GreenMask == 0x0000ff00 &&
+		ColorData.BlueMask  == 0x00ff0000 )
+	{
+		for( i = 0 ; i < Num ; i ++, RectData ++ )
+		{
+			int x1, y1, x2, y2 ;
+
+			if( RectData->x1 > RectData->x2 )
+			{
+				x1 = RectData->x2 ;
+				x2 = RectData->x1 ;
+			}
+			else
+			{
+				x1 = RectData->x1 ;
+				x2 = RectData->x2 ;
+			}
+
+			if( RectData->y1 > RectData->y2 )
+			{
+				y1 = RectData->y2 ;
+				y2 = RectData->y1 ;
+			}
+			else
+			{
+				y1 = RectData->y1 ;
+				y2 = RectData->y2 ;
+			}
+
+			GETVERTEX_QUAD( VectData ) ;
+
+			Color = ( RectData->color & 0x00ffffff ) | ( RectData->pal << 24 ) ;
+			VectData[0].color = Color ;
+			VectData[1].color = Color ;
+			VectData[2].color = Color ;
+			VectData[3].color = Color ;
+			VectData[4].color = Color ;
+			VectData[5].color = Color ;
+			VectData[0].pos.x = ( float )RectData->x1 ;
+			VectData[0].pos.y = ( float )RectData->y1 ;
+			VectData[1].pos.x = ( float )RectData->x2 ;
+			VectData[1].pos.y = ( float )RectData->y1 ;
+			VectData[2].pos.x = ( float )RectData->x1 ;
+			VectData[2].pos.y = ( float )RectData->y2 ;
+			VectData[3].pos.x = ( float )RectData->x2 ;
+			VectData[3].pos.y = ( float )RectData->y2 ;
+			VectData[4].pos.x = ( float )RectData->x1 ;
+			VectData[4].pos.y = ( float )RectData->y2 ;
+			VectData[5].pos.x = ( float )RectData->x2 ;
+			VectData[5].pos.y = ( float )RectData->y1 ;
+			*((DWORD *)&VectData[0].pos.z) = drawz ;
+			*((DWORD *)&VectData[1].pos.z) = drawz ;
+			*((DWORD *)&VectData[2].pos.z) = drawz ;
+			*((DWORD *)&VectData[3].pos.z) = drawz ;
+			*((DWORD *)&VectData[4].pos.z) = drawz ;
+			*((DWORD *)&VectData[5].pos.z) = drawz ;
+			VectData[0].rhw   = 1.0f ;
+			VectData[1].rhw   = 1.0f ;
+			VectData[2].rhw   = 1.0f ;
+			VectData[3].rhw   = 1.0f ;
+			VectData[4].rhw   = 1.0f ;
+			VectData[5].rhw   = 1.0f ;
+
+			// 頂点の追加
+			ADD4VERTEX_NOTEX
+		}
+	}
+	else
+	{
+		MaxRed		= ( 1 << ColorData.RedWidth	  ) - 1 ; 
+		MaxGreen	= ( 1 << ColorData.GreenWidth ) - 1 ;
+		MaxBlue		= ( 1 << ColorData.BlueWidth  ) - 1 ; 
+
+		for( i = 0 ; i < Num ; i ++, RectData ++ )
+		{
+			int x1, y1, x2, y2 ;
+
+			if( RectData->x1 > RectData->x2 )
+			{
+				x1 = RectData->x2 ;
+				x2 = RectData->x1 ;
+			}
+			else
+			{
+				x1 = RectData->x1 ;
+				x2 = RectData->x2 ;
+			}
+
+			if( RectData->y1 > RectData->y2 )
+			{
+				y1 = RectData->y2 ;
+				y2 = RectData->y1 ;
+			}
+			else
+			{
+				y1 = RectData->y1 ;
+				y2 = RectData->y2 ;
+			}
+
+			GETVERTEX_QUAD( VectData ) ;
+
+			Color = RectData->color ;
+			Color = ( RectData->pal << 24 ) |
+							( ( ( ( ( ( Color & ColorData.RedMask	) >> ColorData.RedLoc	) << 8 ) - 1 ) / MaxRed		)       ) |
+							( ( ( ( ( ( Color & ColorData.GreenMask	) >> ColorData.GreenLoc	) << 8 ) - 1 ) / MaxGreen	) << 8  ) |
+							( ( ( ( ( ( Color & ColorData.BlueMask	) >> ColorData.BlueLoc	) << 8 ) - 1 ) / MaxBlue	) << 16 ) ; 
+			VectData[0].color = Color ;
+			VectData[1].color = Color ;
+			VectData[2].color = Color ;
+			VectData[3].color = Color ;
+			VectData[4].color = Color ;
+			VectData[5].color = Color ;
+			VectData[0].pos.x = ( float )RectData->x1 ;
+			VectData[0].pos.y = ( float )RectData->y1 ;
+			VectData[1].pos.x = ( float )RectData->x2 ;
+			VectData[1].pos.y = ( float )RectData->y1 ;
+			VectData[2].pos.x = ( float )RectData->x1 ;
+			VectData[2].pos.y = ( float )RectData->y2 ;
+			VectData[3].pos.x = ( float )RectData->x2 ;
+			VectData[3].pos.y = ( float )RectData->y2 ;
+			VectData[4].pos.x = ( float )RectData->x1 ;
+			VectData[4].pos.y = ( float )RectData->y2 ;
+			VectData[5].pos.x = ( float )RectData->x2 ;
+			VectData[5].pos.y = ( float )RectData->y1 ;
+			*((DWORD *)&VectData[0].pos.z) = drawz ;
+			*((DWORD *)&VectData[1].pos.z) = drawz ;
+			*((DWORD *)&VectData[2].pos.z) = drawz ;
+			*((DWORD *)&VectData[3].pos.z) = drawz ;
+			*((DWORD *)&VectData[4].pos.z) = drawz ;
+			*((DWORD *)&VectData[5].pos.z) = drawz ;
+			VectData[0].rhw   = 1.0f ;
+			VectData[1].rhw   = 1.0f ;
+			VectData[2].rhw   = 1.0f ;
+			VectData[3].rhw   = 1.0f ;
+			VectData[4].rhw   = 1.0f ;
+			VectData[5].rhw   = 1.0f ;
+
+			// 頂点の追加
+			ADD4VERTEX_NOTEX
+		}
+	}
+
+	// 終了
+	return 0 ;
+}
+
 
 
 
@@ -19361,6 +19538,12 @@ extern	int		Graphics_Hardware_Light_SetEnable_PF( int LightNumber, int EnableSta
 	return Graphics_Linux_DeviceState_SetLightEnable( LightNumber, EnableState ) ;
 }
 
+// ライトの計算で角度減衰を行わないようにするかどうかを設定する
+extern	int		Graphics_Hardware_Light_SetNoAngleAttenuation_PF( int NoAngleAttenuation )
+{
+	// 未実装
+	return 0 ;
+}
 
 
 

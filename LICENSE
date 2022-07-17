@@ -27,7 +27,3 @@ DX Library Copyright (C) 2001-2019 Takumi Yamada.
 
 insufficient_include/{misc.h,os.h} are part of Vorbis library.
 see full license in insufficient_include/COPYING-vorbis.txt
-
-
-pre-0004-no-longer-required-jinclude-h.patch has part of libjpeg library
-libjpeg　Copyright (C) 1991-2013, Thomas G. Lane, Guido Vollbeding.
