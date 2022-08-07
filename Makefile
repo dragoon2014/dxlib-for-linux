@@ -3,9 +3,7 @@ SHELL := /bin/bash
 DXLIB_VER := 3_23b
 
 # 環境によっては変更してください
-RENAME := rename.ul
 UNZIP := unzip
-NKF := nkf
 
 # 環境、要不要に応じて変更してください
 CXXFLAGS := -g -O0 \
@@ -129,7 +127,7 @@ patch: extract-source
 	#  単純にコピー
 	cp -a DxLibMake/Android DxLibMake/Linux
 	#  ファイル名をAndroid->Linux
-	$(RENAME) Android Linux DxLibMake/Linux/*
+	for f in $$(find DxLibMake/Linux/ -type f); do t=$$(echo $$f | sed s/Android/Linux/g); mv $$f $$t; done
 	#  各種Androidっぽい字句->対応するLinuxっぽい字句
 	sed -i \
     -e s/Android/Linux/g \
@@ -224,7 +222,9 @@ patch: extract-source
 extract-source: get-source
 	rm -rf DxLibMake
 	$(UNZIP) -O cp932 DxLibMake$(DXLIB_VER).zip
-	find DxLibMake -type f -exec $(NKF) -w -Lu --overwrite {} +
+	find DxLibMake -type f | while read f; do cat "$$f" | tr -d '\r' > tmp; \
+    (iconv -f utf-8 -t utf-8 tmp -o "$$f" 2>/dev/null) \
+    || (iconv -f cp932 -t utf-8 tmp -o "$$f"); rm -f tmp; done
 
 .PHONY: get-source
 get-source:
