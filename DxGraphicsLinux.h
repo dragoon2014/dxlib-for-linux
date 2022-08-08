@@ -21,6 +21,7 @@
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
 #include <X11/Xlib.h>
+#include <X11/Xutil.h>
 #include <X11/Xatom.h>
 #include "DxShader_DataType_Linux.h"
 #include "DxShader_FS_Linux.h"
