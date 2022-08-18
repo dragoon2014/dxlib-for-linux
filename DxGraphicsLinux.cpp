@@ -2,7 +2,7 @@
 // 
 // 		ＤＸライブラリ		描画処理プログラム( Linux )
 // 
-//  	Ver 3.23b
+//  	Ver 3.23d
 // 
 //-----------------------------------------------------------------------------
 
@@ -17364,13 +17364,13 @@ extern	int		Graphics_Hardware_SetGraphicsDeviceLostCallbackFunction_PF( void (* 
 // 通常描画にプログラマブルシェーダーを使用するかどうかを設定する( TRUE:使用する( デフォルト )  FALSE:使用しない )
 extern	int		Graphics_Hardware_SetUseNormalDrawShader_PF( int Flag )
 {
-	return 0 ;
+	return -1 ;
 }
 
 // ビデオメモリの容量を得る
-extern	int		Graphics_Hardware_GetVideoMemorySize_PF( int *AllSize, int *FreeSize )
+extern	int		Graphics_Hardware_GetVideoMemorySizeEx_PF( ULONGLONG *TotalSize, ULONGLONG *UseSize )
 {
-	return 0 ;
+	return -1 ;
 }
 
 // Vista以降の Windows Aero を無効にするかどうかをセットする、TRUE:無効にする  FALSE:有効にする( DxLib_Init の前に呼ぶ必要があります )
