@@ -28,6 +28,8 @@ DEP_LIBS := \
 
 LDFLAG_LIBS := $(addprefix -l, $(DEP_LIBS))
 
+DXLIB_A_OUT_NAME := libDxLib.a
+
 SRCS := $(addprefix DxLibMake/,\
         DxASyncLoad \
         DxArchive_ \
@@ -103,13 +105,13 @@ all: $(SAMPLES)
 $(SAMPLES): lib
 	g++ -o $@ $@.cpp \
     -I DxLibMake $(CXXFLAGS) \
-    DxLibMake/libDxLib.a \
+    DxLibMake/$(DXLIB_A_OUT_NAME) \
     $(LDFLAG_LIBS) \
 
 .PHONY: lib
 lib: $(OBJS)
-	rm -f DxLibMake/libDxLib.a
-	ar rcs DxLibMake/libDxLib.a $(OBJS)
+	rm -f DxLibMake/$(DXLIB_A_OUT_NAME)
+	ar rcs DxLibMake/$(DXLIB_A_OUT_NAME) $(OBJS)
 
 .cpp.o: patch
 	g++ -o $@ -c $< $(CXXFLAGS)
@@ -230,6 +232,10 @@ extract-source: get-source
 get-source:
 	[ -f "DxLibMake$(DXLIB_VER).zip" ] || \
     wget -nc https://dxlib.xsrv.jp/DxLib/DxLibMake$(DXLIB_VER).zip
+
+.PHONY: clean_objs
+clean_objs:
+	rm -rf $(OBJS)
 
 .PHONY: clean
 clean:
