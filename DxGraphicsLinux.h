@@ -2,7 +2,7 @@
 // 
 // 		ＤＸライブラリ		描画処理プログラム( Linux )ヘッダファイル
 // 
-// 				Ver 3.23d
+// 				Ver 3.23f
 // 
 // -------------------------------------------------------------------------------
 
@@ -851,6 +851,13 @@ struct GRAPHICS_HARDDATA_LINUX_DEVICE_STATE
 	GLenum							DepthFunc ;										// 深度値の比較モード( GL_LEQUAL など )
 
 	int								BlendMode ;										// 現在デバイスに設定されているブレンドモード、プリセットのブレンドモード以外の場合は -1 が入る
+	int								BlendEnable ;									// ブレンド処理を行うかどうか( DX_BLENDMODE_CUSTOM 用 )
+	int								BlendRGBSrc ;									// RGBのソースブレンド( DX_BLENDMODE_CUSTOM 用 )
+	int								BlendRGBDest ;									// RGBのデストブレンド( DX_BLENDMODE_CUSTOM 用 )
+	int								BlendRGBOp ;									// RGBのブレンド処理( DX_BLENDMODE_CUSTOM 用 )
+	int								BlendASrc ;										// Aのソースブレンド( DX_BLENDMODE_CUSTOM 用 )
+	int								BlendADest ;									// Aのデストブレンド( DX_BLENDMODE_CUSTOM 用 )
+	int								BlendAOp ;										// Aのブレンド処理( DX_BLENDMODE_CUSTOM 用 )
 	int								NotWriteAlphaChannelFlag ;						// アルファチャンネルの内容を書き換えないかどうかのフラグ
 
 	GRAPHICS_LINUX_TEXTURE		*SetTexture[ USE_TEXTURESTAGE_NUM ] ;			// 描画時に使用するテクスチャ
@@ -953,6 +960,13 @@ struct GRAPHICS_HARDDATA_LINUX_DRAWSETTING
 	int								AlphaTestMode ;							// アルファテストモード
 	int								AlphaTestParam ;						// アルファテストパラメータ
 	int								BlendMode ;								// ブレンドモード
+	int								BlendEnable ;							// ブレンド処理を行うかどうか( DX_BLENDMODE_CUSTOM 用 )
+	int								BlendRGBSrc ;							// RGBのソースブレンド( DX_BLENDMODE_CUSTOM 用 )
+	int								BlendRGBDest ;							// RGBのデストブレンド( DX_BLENDMODE_CUSTOM 用 )
+	int								BlendRGBOp ;							// RGBのブレンド処理( DX_BLENDMODE_CUSTOM 用 )
+	int								BlendASrc ;								// Aのソースブレンド( DX_BLENDMODE_CUSTOM 用 )
+	int								BlendADest ;							// Aのデストブレンド( DX_BLENDMODE_CUSTOM 用 )
+	int								BlendAOp ;								// Aのブレンド処理( DX_BLENDMODE_CUSTOM 用 )
 	int								ChangeBlendParamFlag ;					// ブレンド設定に関わる部分の変更があったか、フラグ
 	int								ChangeTextureFlag ;						// テクスチャが変更されたか、フラグ
 	int								NotWriteAlphaChannelFlag ;				// アルファチャンネルの内容を書き換えないかどうかのフラグ
@@ -963,7 +977,7 @@ struct GRAPHICS_HARDDATA_LINUX_DRAWSETTING
 	int								BlendGraphType ;						// ブレンド画像タイプ
 	int								BlendGraphFadeRatio ;					// ブレンド画像のフェードパラメータ
 	int								BlendGraphBorderParam ;					// ブレンド画像の境界パラメータ(０(ブレンド画像の影響０)　←　(ブレンド画像の影響少ない)　←　１２８(ブレンド画像の影響１００％)　→　(ブレンド画像の影響を超えて非描画部分が増える)　→２５５(全く描画されない) )
-	int								BlendGraphBorderRange ;					// ブレンド画像の境界幅(０〜２５５　狭い〜広い　しかし４段階)
+	int								BlendGraphBorderRange ;					// ブレンド画像の境界幅(０～２５５　狭い～広い　しかし４段階)
 	float							BlendTextureWidth ;						// ブレンドテクスチャの幅
 	float							BlendTextureHeight ;					// ブレンドテクスチャの高さ
 	float							InvBlendTextureWidth ;					// ブレンドテクスチャの幅の逆数
@@ -1576,8 +1590,8 @@ extern	int		Graphics_Linux_DeviceState_SetTextureAddressTransformMatrix( int Use
 extern	int		Graphics_Linux_DeviceState_SetFogEnable( int Flag ) ;												// フォグを有効にするかどうかを設定する( TRUE:有効  FALSE:無効 )
 extern	int		Graphics_Linux_DeviceState_SetFogVertexMode( int Mode /* DX_FOGMODE_NONE 等 */ ) ;				// フォグモードを設定する
 extern	int		Graphics_Linux_DeviceState_SetFogColor( unsigned int Color ) ;									// フォグカラーを変更する
-extern	int		Graphics_Linux_DeviceState_SetFogStartEnd( float Start, float End ) ;								// フォグが始まる距離と終了する距離を設定する( 0.0f 〜 1.0f )
-extern	int		Graphics_Linux_DeviceState_SetFogDensity( float Density ) ;										// フォグの密度を設定する( 0.0f 〜 1.0f )
+extern	int		Graphics_Linux_DeviceState_SetFogStartEnd( float Start, float End ) ;								// フォグが始まる距離と終了する距離を設定する( 0.0f ～ 1.0f )
+extern	int		Graphics_Linux_DeviceState_SetFogDensity( float Density ) ;										// フォグの密度を設定する( 0.0f ～ 1.0f )
 extern	int		Graphics_Linux_DeviceState_SetLighting( int UseFlag ) ;											// ライティングの有無フラグをセットする
 extern	int		Graphics_Linux_DeviceState_SetMaxAnisotropy( int MaxAnisotropy, int Sampler = -1 ) ;				// 最大異方性をセットする
 extern	int		Graphics_Linux_DeviceState_SetViewport( RECT *Viewport ) ;										// ビューポートをセットする
@@ -1589,7 +1603,7 @@ extern	int		Graphics_Linux_DeviceState_SetMulAlphaColor( int UseMulAlphaColor ) 
 extern	int		Graphics_Linux_DeviceState_SetBackgroundColor( int Red, int Green, int Blue, int Alpha ) ;		// 背景色を設定する
 extern	int		Graphics_Linux_DeviceState_SetFactorColor( const DX_LINUX_SHADER_FLOAT4 *FactorColor ) ;			// Factor Color を設定する
 extern	int		Graphics_Linux_DeviceState_SetToonOutLineSize( float Size ) ;										// トゥーンレンダリングの輪郭線の太さを設定する
-extern	int		Graphics_Linux_DeviceState_SetBlendMode( int BlendMode, int NotWriteAlphaChannelFlag ) ;			// 描画ブレンドモードのセット
+extern	int		Graphics_Linux_DeviceState_SetBlendMode( int BlendMode, int BlendEnable, int BlendRGBSrc, int BlendRGBDest, int BlendRGBOp, int BlendASrc, int BlendADest, int BlendAOp, int NotWriteAlphaChannelFlag ) ;			// 描画ブレンドモードのセット
 extern	int		Graphics_Linux_DeviceState_SetRenderTarget( GLuint TargetFrameBuffer, GLuint TargetFrameBufferWidth, GLuint TargetFrameBufferHeight ) ;	// 描画対象の変更
 extern	int		Graphics_Linux_DeviceState_SetShader( GRAPHICS_LINUX_SHADER *Shader, int NormalVertexShader = FALSE ) ;			// 使用するシェーダーを変更する
 extern	int		Graphics_Linux_DeviceState_ResetShader( int SetNormalShaderCancel = FALSE ) ;						// シェーダーの使用を止める
@@ -1606,7 +1620,7 @@ extern	int		Graphics_Linux_DeviceState_NormalDrawSetup( void ) ;												// �
 
 
 // 描画設定関係関数
-extern	int		Graphics_Linux_DrawSetting_SetDrawBlendMode( int BlendMode, int AlphaTestValidFlag, int AlphaChannelValidFlag ) ;	// 描画ブレンドモードの設定
+extern	int		Graphics_Linux_DrawSetting_SetDrawBlendMode( int BlendMode, int BlendEnable, int BlendRGBSrc, int BlendRGBDest, int BlendRGBOp, int BlendASrc, int BlendADest, int BlendAOp, int AlphaTestValidFlag, int AlphaChannelValidFlag ) ;	// 描画ブレンドモードの設定
 extern	int		Graphics_Linux_DrawSetting_SetIgnoreDrawGraphColor( int EnableFlag ) ;							// 描画時の画像のＲＧＢを無視するかどうかを設定する
 extern	int		Graphics_Linux_DrawSetting_SetIgnoreDrawGraphAlpha( int EnableFlag ) ;							// 描画時の画像のＡを無視するかどうかを設定する
 extern	int		Graphics_Linux_DrawSetting_SetWriteAlphaChannelFlag( int NotFlag ) ;								// 描画先のアルファチャンネルの内容を書き換えるかを設定する

@@ -2,7 +2,7 @@
 // 
 // 		ＤＸライブラリ		描画処理プログラム( Linux )
 // 
-//  	Ver 3.23d
+//  	Ver 3.23f
 // 
 //-----------------------------------------------------------------------------
 
@@ -359,6 +359,34 @@ DX_LINUX_RENDER_BLEND_INFO g_DefaultBlendDescArray[ DX_BLENDMODE_NUM ] =
 	{ LINUX_RENDER_TYPE_NORMAL,		TRUE,  GL_SRC_ALPHA,			GL_ONE,					GL_FUNC_ADD,				GL_ONE,					GL_ONE,					GL_FUNC_ADD,				FALSE },	// DX_BLENDMODE_SPINE_ADDITIVE	Spine のブレンドモード Additive 
 	{ LINUX_RENDER_TYPE_NORMAL,		TRUE,  GL_DST_COLOR,			GL_ONE_MINUS_SRC_ALPHA,	GL_FUNC_ADD,				GL_ONE_MINUS_SRC_ALPHA,	GL_ONE_MINUS_SRC_ALPHA,	GL_FUNC_ADD,				FALSE },	// DX_BLENDMODE_SPINE_MULTIPLY	Spine のブレンドモード Multiply 
 	{ LINUX_RENDER_TYPE_NORMAL,		TRUE,  GL_ONE,					GL_ONE_MINUS_SRC_COLOR,	GL_FUNC_ADD,				GL_ONE_MINUS_SRC_COLOR,	GL_ONE_MINUS_SRC_COLOR,	GL_FUNC_ADD,				FALSE },	// DX_BLENDMODE_SPINE_SCREEN	Spine のブレンドモード Screen 用
+
+	{ LINUX_RENDER_TYPE_NORMAL,		TRUE,  GL_SRC_ALPHA,			GL_ONE_MINUS_SRC_ALPHA,	GL_FUNC_ADD,				GL_SRC_ALPHA,			GL_ONE_MINUS_SRC_ALPHA,	GL_FUNC_ADD,				FALSE },	// DX_BLENDMODE_CUSTOM			カスタムブレンド
+} ;
+
+// ＤＸライブラリのブレンド要素タイプを OpenGL ES の要素タイプに変換するためのテーブル
+static const GLenum DxBlendTypeToGLTable[ DX_BLEND_NUM ] =
+{
+	GL_ZERO,					// DX_BLEND_ZERO
+	GL_ONE,						// DX_BLEND_ONE
+	GL_SRC_COLOR,				// DX_BLEND_SRC_COLOR
+	GL_ONE_MINUS_SRC_COLOR,		// DX_BLEND_INV_SRC_COLOR
+	GL_SRC_ALPHA,				// DX_BLEND_SRC_ALPHA
+	GL_ONE_MINUS_SRC_ALPHA,		// DX_BLEND_INV_SRC_ALPHA
+	GL_DST_COLOR,				// DX_BLEND_DEST_COLOR
+	GL_ONE_MINUS_DST_COLOR,		// DX_BLEND_INV_DEST_COLOR
+	GL_DST_ALPHA,				// DX_BLEND_DEST_ALPHA
+	GL_ONE_MINUS_DST_ALPHA,		// DX_BLEND_INV_DEST_ALPHA
+	GL_SRC_ALPHA_SATURATE,		// DX_BLEND_SRC_ALPHA_SAT
+} ;
+
+// ＤＸライブラリのブレンド処理タイプを OpenGL ES の処理タイプに変換するためのテーブル
+static const GLenum DxBlendOpToGLTable[ DX_BLENDOP_NUM ] =
+{
+	GL_FUNC_ADD,				// DX_BLENDOP_ADD
+	GL_FUNC_SUBTRACT,			// DX_BLENDOP_SUBTRACT
+	GL_FUNC_REVERSE_SUBTRACT,	// DX_BLENDOP_REV_SUBTRACT
+	GL_FUNC_ADD,				// DX_BLENDOP_MIX
+	GL_FUNC_ADD,				// DX_BLENDOP_MAX
 } ;
 
 // 頂点バッファに格納できる頂点の最大数のテーブル
@@ -3028,6 +3056,13 @@ extern int		Graphics_Linux_StretchRect(
 	RECT		DestRectTemp ;
 	RECT		BlendRectTemp ;
 	int			BlendMode ;
+	int			BlendEnable ;
+	int			BlendRGBSrc ;
+	int			BlendRGBDest ;
+	int			BlendRGBOp ;
+	int			BlendASrc ;
+	int			BlendADest ;
+	int			BlendAOp ;
 	int			NotWriteAlphaChannelFlag ;
 
 	if( LINUX_CHECKVALID_HARDWARE == FALSE )
@@ -3228,9 +3263,16 @@ extern int		Graphics_Linux_StretchRect(
 		}
 
 		// ブレンドモードを変更
-		BlendMode = GLINUX.Device.State.BlendMode ;
+		BlendMode		= GLINUX.Device.State.BlendMode ;
+		BlendEnable		= GLINUX.Device.State.BlendEnable ;
+		BlendRGBSrc		= GLINUX.Device.State.BlendRGBSrc ;
+		BlendRGBDest	= GLINUX.Device.State.BlendRGBDest ;
+		BlendRGBOp		= GLINUX.Device.State.BlendRGBOp ;
+		BlendASrc		= GLINUX.Device.State.BlendASrc ;
+		BlendADest		= GLINUX.Device.State.BlendADest ;
+		BlendAOp		= GLINUX.Device.State.BlendAOp ;
 		NotWriteAlphaChannelFlag = GLINUX.Device.State.NotWriteAlphaChannelFlag ;
-		Graphics_Linux_DeviceState_SetBlendMode( AlphaBlend ? DX_BLENDMODE_ALPHA : DX_BLENDMODE_NOBLEND, FALSE ) ;
+		Graphics_Linux_DeviceState_SetBlendMode( AlphaBlend ? DX_BLENDMODE_ALPHA : DX_BLENDMODE_NOBLEND, FALSE, DX_BLEND_ONE, DX_BLEND_ZERO, DX_BLENDOP_ADD, DX_BLEND_ONE, DX_BLEND_ZERO, DX_BLENDOP_ADD, FALSE ) ;
 
 		// 頂点データのセットアップ
 		Graphics_Linux_DeviceState_SetupShaderVertexData(
@@ -3247,7 +3289,17 @@ extern int		Graphics_Linux_StretchRect(
 	// 設定を元に戻す
 	{
 		// ブレンドモードを変更
-		Graphics_Linux_DeviceState_SetBlendMode( BlendMode, NotWriteAlphaChannelFlag ) ;
+		Graphics_Linux_DeviceState_SetBlendMode(
+			BlendMode,
+			BlendEnable,
+			BlendRGBSrc,
+			BlendRGBDest,
+			BlendRGBOp,
+			BlendASrc,
+			BlendADest,
+			BlendAOp,
+			NotWriteAlphaChannelFlag
+		) ;
 
 		// 今までの設定を復帰する
 		Graphics_Linux_DeviceState_RefreshRenderState() ;
@@ -4115,7 +4167,7 @@ extern	int		Graphics_Linux_Device_Initialize( void )
 //		) ;
 
 		// ブレンドモード設定
-		Graphics_Linux_DeviceState_SetBlendMode( DX_BLENDMODE_NOBLEND, FALSE ) ;
+		Graphics_Linux_DeviceState_SetBlendMode( DX_BLENDMODE_NOBLEND, FALSE, DX_BLEND_ZERO, DX_BLEND_ZERO, DX_BLENDOP_ADD, DX_BLEND_ZERO, DX_BLEND_ZERO, DX_BLENDOP_ADD, FALSE ) ;
 
 		// アルファテスト設定を初期化
 		Graphics_Linux_DrawSetting_SetDrawAlphaTest( -1, 0 ) ;
@@ -4189,7 +4241,18 @@ extern	int		Graphics_Linux_Device_ReInitialize( void )
 		GLINUX.Device.DrawInfo.VertexNum = 0 ;
 
 		// 描画ブレンドモードの設定
-		Graphics_Linux_DrawSetting_SetDrawBlendMode( GLINUX.Device.DrawSetting.BlendMode, GLINUX.Device.DrawSetting.AlphaTestValidFlag, GLINUX.Device.DrawSetting.AlphaChannelValidFlag ) ;
+		Graphics_Linux_DrawSetting_SetDrawBlendMode(
+			GLINUX.Device.DrawSetting.BlendMode,
+			GLINUX.Device.DrawSetting.BlendEnable,
+			GLINUX.Device.DrawSetting.BlendRGBSrc,
+			GLINUX.Device.DrawSetting.BlendRGBDest,
+			GLINUX.Device.DrawSetting.BlendRGBOp,
+			GLINUX.Device.DrawSetting.BlendASrc,
+			GLINUX.Device.DrawSetting.BlendADest,
+			GLINUX.Device.DrawSetting.BlendAOp,
+			GLINUX.Device.DrawSetting.AlphaTestValidFlag,
+			GLINUX.Device.DrawSetting.AlphaChannelValidFlag
+		) ;
 
 		// 描画画像のＲＧＢを無視するかどうかをセットする
 		Graphics_Linux_DrawSetting_SetIgnoreDrawGraphColor( GLINUX.Device.DrawSetting.IgnoreGraphColorFlag ) ;
@@ -4416,19 +4479,19 @@ extern int Graphics_Linux_DeviceState_SetSampleFilterMode( GLenum Filter, int Sa
 			{
 				glActiveTexture( g_TextureEnum[ i ] ) ;
 				glBindTexture( GL_TEXTURE_2D, GLINUX.Device.State.SetTexture[ i ]->TextureBuffer ) ;
-				if( GLINUX.Device.State.SetTexture[ i ]->MagFilter != GLINUX.Device.State.TexMagFilter[ i ] )
+				// if( GLINUX.Device.State.SetTexture[ i ]->MagFilter != GLINUX.Device.State.TexMagFilter[ i ] )
 				{
 					GLINUX.Device.State.SetTexture[ i ]->MagFilter = GLINUX.Device.State.TexMagFilter[ i ] ;
 					glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GLINUX.Device.State.SetTexture[ i ]->MagFilter ) ;
 				}
-				if( GLINUX.Device.State.SetTexture[ i ]->MinFilter != GLINUX.Device.State.TexMinFilter[ i ] )
+				// if( GLINUX.Device.State.SetTexture[ i ]->MinFilter != GLINUX.Device.State.TexMinFilter[ i ] )
 				{
 					GLenum MinFilterTmp = MinFilter ;
 					if( GLINUX.Device.State.SetTexture[ i ]->MipMapCount <= 1 && MinFilter == GL_LINEAR_MIPMAP_LINEAR )
 					{
 						MinFilterTmp = GL_LINEAR ;
 					}
-					if( GLINUX.Device.State.SetTexture[ i ]->MinFilter != MinFilterTmp )
+					// if( GLINUX.Device.State.SetTexture[ i ]->MinFilter != MinFilterTmp )
 					{
 						GLINUX.Device.State.SetTexture[ i ]->MinFilter = MinFilterTmp ;
 						glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GLINUX.Device.State.SetTexture[ i ]->MinFilter ) ;
@@ -4462,19 +4525,19 @@ extern int Graphics_Linux_DeviceState_SetSampleFilterMode( GLenum Filter, int Sa
 		{
 			glActiveTexture( g_TextureEnum[ Sampler ] ) ;
 			glBindTexture( GL_TEXTURE_2D, GLINUX.Device.State.SetTexture[ Sampler ]->TextureBuffer ) ;
-			if( GLINUX.Device.State.SetTexture[ Sampler ]->MagFilter != GLINUX.Device.State.TexMagFilter[ Sampler ] )
+			// if( GLINUX.Device.State.SetTexture[ Sampler ]->MagFilter != GLINUX.Device.State.TexMagFilter[ Sampler ] )
 			{
 				GLINUX.Device.State.SetTexture[ Sampler ]->MagFilter = GLINUX.Device.State.TexMagFilter[ Sampler ] ;
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GLINUX.Device.State.SetTexture[ Sampler ]->MagFilter ) ;
 			}
-			if( GLINUX.Device.State.SetTexture[ Sampler ]->MinFilter != GLINUX.Device.State.TexMinFilter[ Sampler ] )
+			// if( GLINUX.Device.State.SetTexture[ Sampler ]->MinFilter != GLINUX.Device.State.TexMinFilter[ Sampler ] )
 			{
 				GLenum MinFilterTmp = MinFilter ;
 				if( GLINUX.Device.State.SetTexture[ Sampler ]->MipMapCount <= 1 && MinFilter == GL_LINEAR_MIPMAP_LINEAR )
 				{
 					MinFilterTmp = GL_LINEAR ;
 				}
-				if( GLINUX.Device.State.SetTexture[ Sampler ]->MinFilter != MinFilterTmp )
+				// if( GLINUX.Device.State.SetTexture[ Sampler ]->MinFilter != MinFilterTmp )
 				{
 					GLINUX.Device.State.SetTexture[ Sampler ]->MinFilter = MinFilterTmp ;
 					glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GLINUX.Device.State.SetTexture[ Sampler ]->MinFilter ) ;
@@ -5568,7 +5631,7 @@ static int Graphics_Linux_DeviceState_UpdateConstantFogParam( void )
 	return 0 ;
 }
 
-// フォグが始まる距離と終了する距離を設定する( 0.0f 〜 1.0f )
+// フォグが始まる距離と終了する距離を設定する( 0.0f ～ 1.0f )
 extern int  Graphics_Linux_DeviceState_SetFogStartEnd( float Start, float End )
 {
 	int UpdateFlag ;
@@ -5603,7 +5666,7 @@ extern int  Graphics_Linux_DeviceState_SetFogStartEnd( float Start, float End )
 	return 0 ;
 }
 
-// フォグの密度を設定する( 0.0f 〜 1.0f )
+// フォグの密度を設定する( 0.0f ～ 1.0f )
 extern int  Graphics_Linux_DeviceState_SetFogDensity( float Density )
 {
 	if( Density == GLINUX.Device.State.FogDensity &&
@@ -5959,7 +6022,7 @@ extern int Graphics_Linux_DeviceState_SetToonOutLineSize( float Size )
 }
 
 // 描画ブレンドモードのセット
-extern	int		Graphics_Linux_DeviceState_SetBlendMode( int BlendMode, int NotWriteAlphaChannelFlag )
+extern	int		Graphics_Linux_DeviceState_SetBlendMode( int BlendMode, int BlendEnable, int BlendRGBSrc, int BlendRGBDest, int BlendRGBOp, int BlendASrc, int BlendADest, int BlendAOp, int NotWriteAlphaChannelFlag )
 {
 	DX_LINUX_RENDER_BLEND_INFO *BlendInfo ;
 
@@ -5968,7 +6031,14 @@ extern	int		Graphics_Linux_DeviceState_SetBlendMode( int BlendMode, int NotWrite
 		return -1 ;
 	}
 
-	if( GLINUX.Device.State.BlendMode == BlendMode &&
+	if( GLINUX.Device.State.BlendMode	== BlendMode &&
+		GLINUX.Device.State.BlendEnable	== BlendEnable &&
+		GLINUX.Device.State.BlendRGBSrc	== BlendRGBSrc &&
+		GLINUX.Device.State.BlendRGBDest	== BlendRGBDest &&
+		GLINUX.Device.State.BlendRGBOp	== BlendRGBOp &&
+		GLINUX.Device.State.BlendASrc	== BlendASrc &&
+		GLINUX.Device.State.BlendADest	== BlendADest &&
+		GLINUX.Device.State.BlendAOp		== BlendAOp &&
 		GLINUX.Device.State.NotWriteAlphaChannelFlag == NotWriteAlphaChannelFlag &&
 		GLINUX.Device.DrawSetting.CancelSettingEqualCheck == FALSE )
 	{
@@ -5977,40 +6047,83 @@ extern	int		Graphics_Linux_DeviceState_SetBlendMode( int BlendMode, int NotWrite
 
 	DRAWSTOCKINFO
 
-	GLINUX.Device.State.BlendMode = BlendMode ;
+	GLINUX.Device.State.BlendMode	= BlendMode ;
+	GLINUX.Device.State.BlendEnable	= BlendEnable ;
+	GLINUX.Device.State.BlendRGBSrc	= BlendRGBSrc ;
+	GLINUX.Device.State.BlendRGBDest	= BlendRGBDest ;
+	GLINUX.Device.State.BlendRGBOp	= BlendRGBOp ;
+	GLINUX.Device.State.BlendASrc	= BlendASrc ;
+	GLINUX.Device.State.BlendADest	= BlendADest ;
+	GLINUX.Device.State.BlendAOp		= BlendAOp ;
 	GLINUX.Device.State.NotWriteAlphaChannelFlag = NotWriteAlphaChannelFlag ;
 
 	BlendInfo = &g_DefaultBlendDescArray[ BlendMode ] ;
 
-	if( BlendInfo->BlendEnable )
+	if( BlendMode == DX_BLENDMODE_CUSTOM )
 	{
-		glEnable( GL_BLEND ) ;
-		if( GLINUX.Device.State.NotWriteAlphaChannelFlag )
+		if( BlendEnable )
 		{
-			glBlendEquationSeparate(
-				BlendInfo->ColorBlendFunc,
-				GL_FUNC_ADD
-			) ;
-			glBlendFuncSeparate(
-				BlendInfo->ColorSourceMul, BlendInfo->ColorDestMul,
-				GL_ZERO, GL_ONE
-			) ;
+			glEnable( GL_BLEND ) ;
+			if( NotWriteAlphaChannelFlag )
+			{
+				glBlendEquationSeparate(
+					DxBlendOpToGLTable[ BlendRGBOp ],
+					GL_FUNC_ADD
+				) ;
+				glBlendFuncSeparate(
+					DxBlendTypeToGLTable[ BlendRGBSrc ], DxBlendTypeToGLTable[ BlendRGBDest ],
+					GL_ZERO, GL_ONE
+				) ;
+			}
+			else
+			{
+				glBlendEquationSeparate(
+					DxBlendOpToGLTable[ BlendRGBOp ],
+					DxBlendOpToGLTable[ BlendAOp ]
+				) ;
+				glBlendFuncSeparate(
+					DxBlendTypeToGLTable[ BlendRGBSrc ], DxBlendTypeToGLTable[ BlendRGBDest ],
+					DxBlendTypeToGLTable[ BlendASrc ],   DxBlendTypeToGLTable[ BlendADest ]
+				) ;
+			}
 		}
 		else
 		{
-			glBlendEquationSeparate(
-				BlendInfo->ColorBlendFunc,
-				BlendInfo->AlphaBlendFunc
-			) ;
-			glBlendFuncSeparate(
-				BlendInfo->ColorSourceMul, BlendInfo->ColorDestMul,
-				BlendInfo->AlphaSourceMul, BlendInfo->AlphaDestMul
-			) ;
+			glDisable( GL_BLEND ) ;
 		}
 	}
 	else
 	{
-		glDisable( GL_BLEND ) ;
+		if( BlendInfo->BlendEnable )
+		{
+			glEnable( GL_BLEND ) ;
+			if( GLINUX.Device.State.NotWriteAlphaChannelFlag )
+			{
+				glBlendEquationSeparate(
+					BlendInfo->ColorBlendFunc,
+					GL_FUNC_ADD
+				) ;
+				glBlendFuncSeparate(
+					BlendInfo->ColorSourceMul, BlendInfo->ColorDestMul,
+					GL_ZERO, GL_ONE
+				) ;
+			}
+			else
+			{
+				glBlendEquationSeparate(
+					BlendInfo->ColorBlendFunc,
+					BlendInfo->AlphaBlendFunc
+				) ;
+				glBlendFuncSeparate(
+					BlendInfo->ColorSourceMul, BlendInfo->ColorDestMul,
+					BlendInfo->AlphaSourceMul, BlendInfo->AlphaDestMul
+				) ;
+			}
+		}
+		else
+		{
+			glDisable( GL_BLEND ) ;
+		}
 	}
 
 	GLINUX.Device.DrawSetting.DrawPrepAlwaysFlag = TRUE ;
@@ -6514,19 +6627,19 @@ extern int Graphics_Linux_DeviceState_SetTexture( int SlotIndex, GRAPHICS_LINUX_
 				Texture->WrapT = GLINUX.Device.State.TexAddressModeV[ SlotIndex ] ;
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Texture->WrapT ) ;
 			}
-			if( Texture->MagFilter != GLINUX.Device.State.TexMagFilter[ SlotIndex ] )
+			// if( Texture->MagFilter != GLINUX.Device.State.TexMagFilter[ SlotIndex ] )
 			{
 				Texture->MagFilter = GLINUX.Device.State.TexMagFilter[ SlotIndex ] ;
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, Texture->MagFilter ) ;
 			}
-			if( Texture->MinFilter != GLINUX.Device.State.TexMinFilter[ SlotIndex ] )
+			// if( Texture->MinFilter != GLINUX.Device.State.TexMinFilter[ SlotIndex ] )
 			{
 				GLenum MinFilterTmp = GLINUX.Device.State.TexMinFilter[ SlotIndex ] ;
 				if( Texture->MipMapCount <= 1 && MinFilterTmp == GL_LINEAR_MIPMAP_LINEAR )
 				{
 					MinFilterTmp = GL_LINEAR ;
 				}
-				if( Texture->MinFilter != MinFilterTmp )
+				// if( Texture->MinFilter != MinFilterTmp )
 				{
 					Texture->MinFilter = MinFilterTmp ;
 					glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, Texture->MinFilter ) ;
@@ -6544,6 +6657,13 @@ extern	int		Graphics_Linux_DeviceState_NormalDrawSetup( void )
 {
 	int											IgnoreTextureAlpha ;
 	int											NextBlendMode ;
+	int											NextBlendEnable ;
+	int											NextBlendRGBSrc ;
+	int											NextBlendRGBDest ;
+	int											NextBlendRGBOp ;
+	int											NextBlendASrc ;
+	int											NextBlendADest ;
+	int											NextBlendAOp ;
 	int											UseFloatFactorColor = FALSE ;
 	DX_LINUX_SHADER_FLOAT4						FloatFactorColor ;
 	int											AlphaTestRef = 0 ;
@@ -6567,7 +6687,14 @@ extern	int		Graphics_Linux_DeviceState_NormalDrawSetup( void )
 
 	// ブレンドモードの決定
 	{
-		NextBlendMode = GLINUX.Device.DrawSetting.BlendMode ;
+		NextBlendMode		= GLINUX.Device.DrawSetting.BlendMode ;
+		NextBlendEnable		= GLINUX.Device.DrawSetting.BlendEnable ;
+		NextBlendRGBSrc		= GLINUX.Device.DrawSetting.BlendRGBSrc ;
+		NextBlendRGBDest	= GLINUX.Device.DrawSetting.BlendRGBDest ;
+		NextBlendRGBOp		= GLINUX.Device.DrawSetting.BlendRGBOp ;
+		NextBlendASrc		= GLINUX.Device.DrawSetting.BlendASrc ;
+		NextBlendADest		= GLINUX.Device.DrawSetting.BlendADest ;
+		NextBlendAOp		= GLINUX.Device.DrawSetting.BlendAOp	;
 		switch( GLINUX.Device.DrawSetting.BlendMode )
 		{
 		case DX_BLENDMODE_SUB :
@@ -7014,7 +7141,17 @@ extern	int		Graphics_Linux_DeviceState_NormalDrawSetup( void )
 		Graphics_Linux_DeviceState_SetFactorColor( &FloatFactorColor ) ;
 	}
 
-	Graphics_Linux_DeviceState_SetBlendMode( NextBlendMode, GLINUX.Device.DrawSetting.NotWriteAlphaChannelFlag ) ;
+	Graphics_Linux_DeviceState_SetBlendMode(
+		NextBlendMode,
+		NextBlendEnable,
+		NextBlendRGBSrc,
+		NextBlendRGBDest,
+		NextBlendRGBOp,
+		NextBlendASrc,
+		NextBlendADest,
+		NextBlendAOp,
+		GLINUX.Device.DrawSetting.NotWriteAlphaChannelFlag
+	) ;
 	Graphics_Linux_DeviceState_SetShader( *UseShader, TRUE ) ;
 
 	// 終了
@@ -7049,12 +7186,19 @@ extern	int		Graphics_Linux_DeviceState_NormalDrawSetup( void )
 // 描画設定関係関数
 
 // 描画ブレンドモードの設定
-extern int Graphics_Linux_DrawSetting_SetDrawBlendMode( int BlendMode, int AlphaTestValidFlag, int AlphaChannelValidFlag )
+extern int Graphics_Linux_DrawSetting_SetDrawBlendMode( int BlendMode, int BlendEnable, int BlendRGBSrc, int BlendRGBDest, int BlendRGBOp, int BlendASrc, int BlendADest, int BlendAOp, int AlphaTestValidFlag, int AlphaChannelValidFlag )
 {
-	if( GLINUX.Device.DrawSetting.CancelSettingEqualCheck == FALSE &&
-		GLINUX.Device.DrawSetting.BlendMode               == BlendMode &&
-		GLINUX.Device.DrawSetting.AlphaTestValidFlag      == AlphaTestValidFlag &&
-		GLINUX.Device.DrawSetting.AlphaChannelValidFlag   == AlphaChannelValidFlag )
+	if( GLINUX.Device.DrawSetting.CancelSettingEqualCheck	== FALSE &&
+		GLINUX.Device.DrawSetting.BlendMode					== BlendMode &&
+		GLINUX.Device.DrawSetting.BlendEnable				== BlendEnable  &&
+		GLINUX.Device.DrawSetting.BlendRGBSrc				== BlendRGBSrc  &&
+		GLINUX.Device.DrawSetting.BlendRGBDest				== BlendRGBDest &&
+		GLINUX.Device.DrawSetting.BlendRGBOp					== BlendRGBOp   &&
+		GLINUX.Device.DrawSetting.BlendASrc					== BlendASrc    &&
+		GLINUX.Device.DrawSetting.BlendADest					== BlendADest   &&
+		GLINUX.Device.DrawSetting.BlendAOp					== BlendAOp     &&
+		GLINUX.Device.DrawSetting.AlphaTestValidFlag			== AlphaTestValidFlag &&
+		GLINUX.Device.DrawSetting.AlphaChannelValidFlag		== AlphaChannelValidFlag )
 	{
 		return 0 ;
 	}
@@ -7063,6 +7207,13 @@ extern int Graphics_Linux_DrawSetting_SetDrawBlendMode( int BlendMode, int Alpha
 	DRAWSTOCKINFO
 
 	GLINUX.Device.DrawSetting.BlendMode             = BlendMode ;
+	GLINUX.Device.DrawSetting.BlendEnable		   = BlendEnable ;
+	GLINUX.Device.DrawSetting.BlendRGBSrc		   = BlendRGBSrc ;
+	GLINUX.Device.DrawSetting.BlendRGBDest		   = BlendRGBDest ;
+	GLINUX.Device.DrawSetting.BlendRGBOp			   = BlendRGBOp ;
+	GLINUX.Device.DrawSetting.BlendASrc			   = BlendASrc ;
+	GLINUX.Device.DrawSetting.BlendADest			   = BlendADest ; 
+	GLINUX.Device.DrawSetting.BlendAOp			   = BlendAOp ;
 	GLINUX.Device.DrawSetting.AlphaChannelValidFlag = AlphaChannelValidFlag ;
 	GLINUX.Device.DrawSetting.AlphaTestValidFlag    = AlphaTestValidFlag ;
 	GLINUX.Device.DrawSetting.DrawPrepAlwaysFlag    = TRUE ;
@@ -7666,10 +7817,28 @@ extern	void	FASTCALL Graphics_Linux_DrawPreparation( int ParamFlag )
 		}
 
 		if( GLINUX.Device.DrawSetting.BlendMode             != GSYS.DrawSetting.BlendMode ||
+			GLINUX.Device.DrawSetting.BlendEnable           != GSYS.DrawSetting.BlendEnable  ||
+			GLINUX.Device.DrawSetting.BlendRGBSrc           != GSYS.DrawSetting.BlendRGBSrc  ||
+			GLINUX.Device.DrawSetting.BlendRGBDest          != GSYS.DrawSetting.BlendRGBDest ||
+			GLINUX.Device.DrawSetting.BlendRGBOp            != GSYS.DrawSetting.BlendRGBOp   ||
+			GLINUX.Device.DrawSetting.BlendASrc             != GSYS.DrawSetting.BlendASrc    ||
+			GLINUX.Device.DrawSetting.BlendADest            != GSYS.DrawSetting.BlendADest   ||
+			GLINUX.Device.DrawSetting.BlendAOp              != GSYS.DrawSetting.BlendAOp     ||
 			GLINUX.Device.DrawSetting.AlphaTestValidFlag    != AlphaTest ||
 			GLINUX.Device.DrawSetting.AlphaChannelValidFlag != AlphaChannel               )
 		{
-			Graphics_Linux_DrawSetting_SetDrawBlendMode( GSYS.DrawSetting.BlendMode, AlphaTest, AlphaChannel ) ;
+			Graphics_Linux_DrawSetting_SetDrawBlendMode(
+				GSYS.DrawSetting.BlendMode,
+				GSYS.DrawSetting.BlendEnable,
+				GSYS.DrawSetting.BlendRGBSrc,
+				GSYS.DrawSetting.BlendRGBDest,
+				GSYS.DrawSetting.BlendRGBOp,
+				GSYS.DrawSetting.BlendASrc,
+				GSYS.DrawSetting.BlendADest,
+				GSYS.DrawSetting.BlendAOp,
+				AlphaTest,
+				AlphaChannel
+			) ;
 		}
 
 		if( GLINUX.Device.DrawSetting.AlphaTestMode         != GSYS.DrawSetting.AlphaTestMode ||
@@ -16264,7 +16433,17 @@ extern void Graphics_Linux_DrawPreparationToShader( int ParamFlag, int Is2D )
 	Flag = ParamFlag | DX_LINUX_DRAWPREP_SPECULAR | DX_LINUX_DRAWPREP_TEXADDRESS | DX_LINUX_DRAWPREP_NOBLENDSETTING | DX_LINUX_DRAWPREP_CULLING | ( Is2D ? 0 : DX_LINUX_DRAWPREP_3D ) ;
 	DX_LINUX_DRAWPREP_NOTEX( Flag )
 
-	Graphics_Linux_DeviceState_SetBlendMode( GSYS.DrawSetting.BlendMode, GLINUX.Device.DrawSetting.NotWriteAlphaChannelFlag ) ;
+	Graphics_Linux_DeviceState_SetBlendMode(
+		GSYS.DrawSetting.BlendMode,
+		GSYS.DrawSetting.BlendEnable,
+		GSYS.DrawSetting.BlendRGBSrc,
+		GSYS.DrawSetting.BlendRGBDest,
+		GSYS.DrawSetting.BlendRGBOp,
+		GSYS.DrawSetting.BlendASrc,
+		GSYS.DrawSetting.BlendADest,
+		GSYS.DrawSetting.BlendAOp,
+		GLINUX.Device.DrawSetting.NotWriteAlphaChannelFlag
+	) ;
 }
 
 // シェーダーを使って２Ｄプリミティブを描画する
@@ -16935,7 +17114,7 @@ extern	int		Graphics_Hardware_SetRenderTargetToShader_PF( int TargetIndex, int D
 	return 0 ;
 }
 
-// メインウインドウの背景色を設定する( Red,Green,Blue:それぞれ ０〜２５５ )
+// メインウインドウの背景色を設定する( Red,Green,Blue:それぞれ ０～２５５ )
 extern	int		Graphics_Hardware_SetBackgroundColor_PF( int Red, int Green, int Blue, int Alpha )
 {
 	Graphics_Linux_DeviceState_SetBackgroundColor( Red, Green, Blue, Alpha ) ;
@@ -16961,6 +17140,16 @@ extern	int		Graphics_Hardware_SetDrawBlendMode_PF( int BlendMode, int BlendParam
 
 	// 正常終了
 	return 0 ;
+}
+
+// カスタムブレンドモードを設定する
+extern	int		Graphics_Hardware_SetDrawCustomBlendMode_PF(int BlendEnable, int SrcBlendRGB, int DestBlendRGB, int BlendOpRGB, int SrcBlendA, int DestBlendA, int BlendOpA, int BlendParam)
+{
+	// ディフーズカラーの更新
+	GLINUX.Device.DrawInfo.DiffuseColor = GetDiffuseColor();
+
+	// 正常終了
+	return 0;
 }
 
 // 描画時のアルファテストの設定を行う( TestMode:DX_CMP_GREATER等( -1:デフォルト動作に戻す )  TestParam:描画アルファ値との比較に使用する値 )
@@ -17161,7 +17350,7 @@ extern	int		Graphics_Hardware_SetFogColor_PF( DWORD FogColor )
 	return 0 ;
 }
 
-// フォグが始まる距離と終了する距離を設定する( 0.0f 〜 1.0f )
+// フォグが始まる距離と終了する距離を設定する( 0.0f ～ 1.0f )
 extern	int		Graphics_Hardware_SetFogStartEnd_PF( float start, float end )
 {
 	Graphics_Linux_DeviceState_SetFogStartEnd( start, end ) ;
@@ -17170,7 +17359,7 @@ extern	int		Graphics_Hardware_SetFogStartEnd_PF( float start, float end )
 	return 0 ;
 }
 
-// フォグの密度を設定する( 0.0f 〜 1.0f )
+// フォグの密度を設定する( 0.0f ～ 1.0f )
 extern	int		Graphics_Hardware_SetFogDensity_PF( float density )
 {
 	Graphics_Linux_DeviceState_SetFogDensity( density ) ;
@@ -17817,6 +18006,13 @@ extern	int		Graphics_ScreenFlipBase_PF( void )
 		DWORD DestH ;
         GLuint ViewFrameBuffer ;
 		int BlendMode ;
+		int BlendEnable ;
+		int BlendRGBSrc ;
+		int BlendRGBDest ;
+		int BlendRGBOp ;
+		int BlendASrc ;
+		int BlendADest ;
+		int BlendAOp ;
 		int NotWriteAlphaChannelFlag ;
 		float VertexData[ 4 ][ 4 ] =
 		{
@@ -17849,9 +18045,16 @@ extern	int		Graphics_ScreenFlipBase_PF( void )
 		DestRect.bottom = DestRect.top  + DestH ;
 
 		// ブレンドモードをブレンド無しに変更
-		BlendMode = GLINUX.Device.State.BlendMode ;
+		BlendMode		= GLINUX.Device.State.BlendMode ;
+		BlendEnable		= GLINUX.Device.State.BlendEnable ;
+		BlendRGBSrc		= GLINUX.Device.State.BlendRGBSrc ;
+		BlendRGBDest	= GLINUX.Device.State.BlendRGBDest ;
+		BlendRGBOp		= GLINUX.Device.State.BlendRGBOp ;
+		BlendASrc		= GLINUX.Device.State.BlendASrc ;
+		BlendADest		= GLINUX.Device.State.BlendADest ;
+		BlendAOp		= GLINUX.Device.State.BlendAOp ;
 		NotWriteAlphaChannelFlag = GLINUX.Device.State.NotWriteAlphaChannelFlag ;
-		Graphics_Linux_DeviceState_SetBlendMode( DX_BLENDMODE_NOBLEND, FALSE ) ;
+		Graphics_Linux_DeviceState_SetBlendMode( DX_BLENDMODE_NOBLEND, FALSE, DX_BLEND_ONE, DX_BLEND_ZERO, DX_BLENDOP_ADD, DX_BLEND_ONE, DX_BLEND_ZERO, DX_BLENDOP_ADD, FALSE ) ;
 
 		// 描画先をフレームバッファに変更( 設定は Graphics_Linux_DeviceState_RefreshRenderState で戻す )
 		glBindFramebuffer( GL_FRAMEBUFFER, 0 ) ;
@@ -18028,7 +18231,17 @@ extern	int		Graphics_ScreenFlipBase_PF( void )
 		GSYS.PerformanceInfo.NowFrameDrawCallCount ++ ;
 
 		// ブレンドモードを元に戻す
-		Graphics_Linux_DeviceState_SetBlendMode( BlendMode, NotWriteAlphaChannelFlag ) ;
+		Graphics_Linux_DeviceState_SetBlendMode(
+			BlendMode,
+			BlendEnable,
+			BlendRGBSrc,
+			BlendRGBDest,
+			BlendRGBOp,
+			BlendASrc,
+			BlendADest,
+			BlendAOp,
+			NotWriteAlphaChannelFlag
+		) ;
 	}
 
 	// スワップする
