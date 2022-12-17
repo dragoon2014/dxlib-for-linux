@@ -4,6 +4,7 @@ DXLIB_VER := 3_24
 
 # 環境によっては変更してください
 UNZIP := unzip
+CXX := g++
 
 # 環境、要不要に応じて変更してください
 CXXFLAGS := -g -O0 \
@@ -103,7 +104,7 @@ SAMPLES := $(addprefix samples/,\
 all: $(SAMPLES)
 
 $(SAMPLES): lib
-	g++ -o $@ $@.cpp \
+	$(CXX) -o $@ $@.cpp \
     -I DxLibMake $(CXXFLAGS) \
     DxLibMake/$(DXLIB_A_OUT_NAME) \
     $(LDFLAG_LIBS) \
@@ -114,7 +115,7 @@ lib: $(OBJS)
 	ar rcs DxLibMake/$(DXLIB_A_OUT_NAME) $(OBJS)
 
 .cpp.o: patch
-	g++ -o $@ -c $< $(CXXFLAGS)
+	$(CXX) -o $@ -c $< $(CXXFLAGS)
 
 .PHONY: patch
 patch: extract-source
