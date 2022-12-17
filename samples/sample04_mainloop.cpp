@@ -2,7 +2,9 @@
 #include <math.h>
 
 int main(){
-    //ChangeWindowMode(1);
+#ifdef WINDOWS_DESKTOP_OS
+    ChangeWindowMode(1);
+#endif
     if(DxLib_Init() == -1){
         return -1;
     }
