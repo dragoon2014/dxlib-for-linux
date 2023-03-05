@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-DXLIB_VER := 3_24
+DXLIB_VER := 3_24b
 
 # 環境によっては変更してください
 UNZIP := unzip

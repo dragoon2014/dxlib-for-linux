@@ -2,7 +2,7 @@
 // 
 // 		ＤＸライブラリ		描画処理プログラム( Linux )
 // 
-//  	Ver 3.24 
+//  	Ver 3.24b
 // 
 //-----------------------------------------------------------------------------
 
@@ -15832,6 +15832,73 @@ extern	int		Graphics_Hardware_DrawIndexedPrimitive_PF( const VERTEX_3D *Vertex, 
 	return 0 ;
 }
 
+extern	int		Graphics_Hardware_Draw32bitIndexedPrimitive_PF( const VERTEX_3D *Vertex, int VertexNum, const DWORD *Indices, int IndexNum, int PrimitiveType, IMAGEDATA *Image, int TransFlag )
+{
+	int i ;
+	VERTEX_3D *VertP ;
+	unsigned char tmp ;
+	int BackupUse3DVertex ;
+
+	if( LINUX_CHECKVALID_HARDWARE == FALSE )
+	{
+		return -1 ;
+	}
+
+	if( PrimitiveType < DX_PRIMTYPE_MIN || PrimitiveType > DX_PRIMTYPE_MAX )
+	{
+		return -1 ;
+	}
+
+	if( Graphics_Linux_DrawPrimitive3DPreparation( 0, Image, TransFlag ) < 0 )
+	{
+		return -1 ;
+	}
+
+	if( GSYS.HardInfo.UseVertexColorBGRAFormat == FALSE )
+	{
+		VertP = ( VERTEX_3D * )Vertex ;
+		for( i = 0 ; i < VertexNum ; i ++, VertP ++ )
+		{
+			tmp = VertP->b ;
+			VertP->b = VertP->r ;
+			VertP->r = tmp ;
+		}
+	}
+
+	BackupUse3DVertex = GLINUX.Device.DrawInfo.Use3DVertex ;
+	GLINUX.Device.DrawInfo.Use3DVertex = 1 ;
+	Graphics_Linux_DeviceState_NormalDrawSetup() ;
+	GLINUX.Device.DrawInfo.Use3DVertex = BackupUse3DVertex ;
+
+	// Uniform の更新
+	Graphics_Linux_DeviceState_UpdateShaderUniform( GLINUX.Device.State.SetShader, 3 ) ;
+
+	// 頂点データのセットアップ
+	Graphics_Linux_DeviceState_SetupShaderVertexData(
+		GLINUX.Device.State.SetShader,
+		&g_BaseSimpleVertexShaderInfo[ LINUX_VERTEX_INPUTLAYOUT_3D ].InputInfo,
+		Vertex
+	) ;
+
+	// 描画
+	glDrawElements( g_DXPrimitiveTypeToGLES2PrimitiveType[ PrimitiveType ], IndexNum, GL_UNSIGNED_INT, Indices );
+	GSYS.PerformanceInfo.NowFrameDrawCallCount ++ ;
+
+	if( GSYS.HardInfo.UseVertexColorBGRAFormat == FALSE )
+	{
+		VertP = ( VERTEX_3D * )Vertex ;
+		for( i = 0 ; i < VertexNum ; i ++, VertP ++ )
+		{
+			tmp = VertP->b ;
+			VertP->b = VertP->r ;
+			VertP->r = tmp ;
+		}
+	}
+
+	// 終了
+	return 0 ;
+}
+
 extern	int		Graphics_Hardware_DrawPrimitiveLight_PF( const VERTEX3D *Vertex, int VertexNum, int PrimitiveType, IMAGEDATA *Image, int TransFlag )
 {
 	int i ;
@@ -15961,6 +16028,81 @@ extern	int		Graphics_Hardware_DrawIndexedPrimitiveLight_PF( const VERTEX3D *Vert
 
 	// 描画
 	glDrawElements( g_DXPrimitiveTypeToGLES2PrimitiveType[ PrimitiveType ], IndexNum, GL_UNSIGNED_SHORT, Indices );
+	GSYS.PerformanceInfo.NowFrameDrawCallCount ++ ;
+
+	if( GSYS.HardInfo.UseVertexColorBGRAFormat == FALSE )
+	{
+		VertP = ( VERTEX3D * )Vertex ;
+		for( i = 0 ; i < VertexNum ; i ++, VertP ++ )
+		{
+			tmp = VertP->dif.b ;
+			VertP->dif.b = VertP->dif.r ;
+			VertP->dif.r = tmp ;
+
+			tmp = VertP->spc.b ;
+			VertP->spc.b = VertP->spc.r ;
+			VertP->spc.r = tmp ;
+		}
+	}
+
+	// 終了
+	return 0 ;
+}
+
+extern	int		Graphics_Hardware_Draw32bitIndexedPrimitiveLight_PF( const VERTEX3D *Vertex, int VertexNum, const DWORD *Indices, int IndexNum, int PrimitiveType, IMAGEDATA *Image, int TransFlag )
+{
+	int i ;
+	VERTEX3D *VertP ;
+	unsigned char tmp ;
+
+	if( LINUX_CHECKVALID_HARDWARE == FALSE )
+	{
+		return -1 ;
+	}
+
+	if( PrimitiveType < DX_PRIMTYPE_MIN || PrimitiveType > DX_PRIMTYPE_MAX )
+	{
+		return -1 ;
+	}
+
+	if( Graphics_Linux_DrawPrimitive3DPreparation( DX_LINUX_DRAWPREP_LIGHTING | DX_LINUX_DRAWPREP_SPECULAR, Image, TransFlag ) < 0 )
+	{
+		return -1 ;
+	}
+
+	if( GSYS.HardInfo.UseVertexColorBGRAFormat == FALSE )
+	{
+		VertP = ( VERTEX3D * )Vertex ;
+		for( i = 0 ; i < VertexNum ; i ++, VertP ++ )
+		{
+			tmp = VertP->dif.b ;
+			VertP->dif.b = VertP->dif.r ;
+			VertP->dif.r = tmp ;
+
+			tmp = VertP->spc.b ;
+			VertP->spc.b = VertP->spc.r ;
+			VertP->spc.r = tmp ;
+		}
+	}
+
+	// シェーダーをセット
+	if( Graphics_Linux_Shader_Normal3DDraw_Setup() == FALSE )
+	{
+		return -1 ;
+	}
+
+	// Uniform の更新
+	Graphics_Linux_DeviceState_UpdateShaderUniform( GLINUX.Device.State.SetShader, 3 ) ;
+
+	// 頂点データのセットアップ
+	Graphics_Linux_DeviceState_SetupShaderVertexData(
+		GLINUX.Device.State.SetShader,
+		&g_BaseSimpleVertexShaderInfo[ LINUX_VERTEX_INPUTLAYOUT_3D_LIGHT ].InputInfo,
+		Vertex
+	) ;
+
+	// 描画
+	glDrawElements( g_DXPrimitiveTypeToGLES2PrimitiveType[ PrimitiveType ], IndexNum, GL_UNSIGNED_INT, Indices );
 	GSYS.PerformanceInfo.NowFrameDrawCallCount ++ ;
 
 	if( GSYS.HardInfo.UseVertexColorBGRAFormat == FALSE )
@@ -16413,6 +16555,77 @@ extern	int		Graphics_Hardware_DrawIndexedPrimitive2DUser_PF( const VERTEX2D *Ver
 	return 0 ;
 }
 
+extern	int		Graphics_Hardware_Draw32bitIndexedPrimitive2DUser_PF( const VERTEX2D *Vertex, int VertexNum, const DWORD *Indices, int IndexNum, int PrimitiveType, IMAGEDATA *Image, int TransFlag )
+{
+	int Flag ;
+	int i ;
+	VERTEX2D *VertP ;
+	unsigned char tmp ;
+
+	if( LINUX_CHECKVALID_HARDWARE == FALSE )
+	{
+		return -1 ;
+	}
+
+	if( PrimitiveType < DX_PRIMTYPE_MIN || PrimitiveType > DX_PRIMTYPE_MAX )
+	{
+		return -1 ;
+	}
+
+	// 描画待機している描画物を描画
+	DRAWSTOCKINFO
+
+	// 描画の準備
+	Flag = TransFlag | DX_LINUX_DRAWPREP_TEXADDRESS | DX_LINUX_DRAWPREP_CULLING ;
+	if( Image )
+	{
+		DX_LINUX_DRAWPREP_TEX( Image->Orig, &Image->Hard.Draw[ 0 ].Tex->PF->Texture, Flag )
+	}
+	else
+	{
+		DX_LINUX_DRAWPREP_NOTEX( Flag )
+	}
+
+	if( GSYS.HardInfo.UseVertexColorBGRAFormat == FALSE )
+	{
+		VertP = ( VERTEX2D * )Vertex ;
+		for( i = 0 ; i < VertexNum ; i ++, VertP ++ )
+		{
+			tmp = VertP->dif.b ;
+			VertP->dif.b = VertP->dif.r ;
+			VertP->dif.r = tmp ;
+		}
+	}
+
+	// Uniform の更新
+	Graphics_Linux_DeviceState_UpdateShaderUniform( GLINUX.Device.State.SetShader, 3 ) ;
+
+	// 頂点データのセットアップ
+	Graphics_Linux_DeviceState_SetupShaderVertexData(
+		GLINUX.Device.State.SetShader,
+		&g_BaseSimpleVertexShaderInfo[ LINUX_VERTEX_INPUTLAYOUT_2D ].InputInfo,
+		Vertex
+	) ;
+
+	// 描画
+	glDrawElements( g_DXPrimitiveTypeToGLES2PrimitiveType[ PrimitiveType ], IndexNum, GL_UNSIGNED_INT, Indices );
+	GSYS.PerformanceInfo.NowFrameDrawCallCount ++ ;
+
+	if( GSYS.HardInfo.UseVertexColorBGRAFormat == FALSE )
+	{
+		VertP = ( VERTEX2D * )Vertex ;
+		for( i = 0 ; i < VertexNum ; i ++, VertP ++ )
+		{
+			tmp = VertP->dif.b ;
+			VertP->dif.b = VertP->dif.r ;
+			VertP->dif.r = tmp ;
+		}
+	}
+
+	// 終了
+	return 0 ;
+}
+
 
 
 
@@ -16562,6 +16775,43 @@ extern	int		Graphics_Hardware_DrawPrimitiveIndexed2DToShader_PF( const VERTEX2DS
 	return 0 ;
 }
 
+// シェーダーを使って２Ｄプリミティブを描画する( 頂点インデックスを使用する )
+extern	int		Graphics_Hardware_DrawPrimitive32bitIndexed2DToShader_PF( const VERTEX2DSHADER *Vertex, int VertexNum, const unsigned int *Indices, int IndexNum, int PrimitiveType /* DX_PRIMTYPE_TRIANGLELIST 等 */ )
+{
+	if( LINUX_CHECKVALID_HARDWARE == FALSE )
+	{
+		return -1 ;
+	}
+
+	if( PrimitiveType < DX_PRIMTYPE_MIN || PrimitiveType > DX_PRIMTYPE_MAX )
+	{
+		return -1 ;
+	}
+
+	// 描画待機している描画物を描画
+	DRAWSTOCKINFO
+
+	// 描画の準備
+	Graphics_Linux_DrawPreparationToShader( 0, TRUE ) ;
+
+	// Uniform の更新
+	Graphics_Linux_DeviceState_UpdateShaderUniform( GLINUX.Device.State.SetShader, 3 ) ;
+
+	// 頂点データのセットアップ
+	Graphics_Linux_DeviceState_SetupShaderVertexData(
+		GLINUX.Device.State.SetShader,
+		&g_BaseSimpleVertexShaderInfo[ LINUX_VERTEX_INPUTLAYOUT_BLENDTEX_2D ].InputInfo,
+		Vertex
+	) ;
+
+	// 描画
+	glDrawElements( g_DXPrimitiveTypeToGLES2PrimitiveType[ PrimitiveType ], IndexNum, GL_UNSIGNED_INT, Indices );
+	GSYS.PerformanceInfo.NowFrameDrawCallCount ++ ;
+
+	// 終了
+	return 0 ;
+}
+
 // シェーダーを使って３Ｄプリミティブを描画する( 頂点インデックスを使用する )
 extern	int		Graphics_Hardware_DrawPrimitiveIndexed3DToShader_PF( const VERTEX3DSHADER *Vertex, int VertexNum, const unsigned short *Indices, int IndexNum, int PrimitiveType /* DX_PRIMTYPE_TRIANGLELIST 等 */ )
 {
@@ -16597,6 +16847,47 @@ extern	int		Graphics_Hardware_DrawPrimitiveIndexed3DToShader_PF( const VERTEX3DS
 
 	// 描画
 	glDrawElements( g_DXPrimitiveTypeToGLES2PrimitiveType[ PrimitiveType ], IndexNum, GL_UNSIGNED_SHORT, Indices );
+	GSYS.PerformanceInfo.NowFrameDrawCallCount ++ ;
+
+	// 終了
+	return 0 ;
+}
+
+// シェーダーを使って３Ｄプリミティブを描画する( 頂点インデックスを使用する )
+extern	int		Graphics_Hardware_DrawPrimitive32bitIndexed3DToShader_PF( const VERTEX3DSHADER *Vertex, int VertexNum, const unsigned int *Indices, int IndexNum, int PrimitiveType /* DX_PRIMTYPE_TRIANGLELIST 等 */ )
+{
+	if( LINUX_CHECKVALID_HARDWARE == FALSE )
+	{
+		return -1 ;
+	}
+
+	if( PrimitiveType < DX_PRIMTYPE_MIN || PrimitiveType > DX_PRIMTYPE_MAX )
+	{
+		return -1 ;
+	}
+
+	// 描画待機している描画物を描画
+	DRAWSTOCKINFO
+
+	// 描画の準備
+	Graphics_Linux_DrawPreparationToShader( DX_LINUX_DRAWPREP_LIGHTING | DX_LINUX_DRAWPREP_FOG, FALSE ) ;
+
+	// ３Ｄ行列をハードウエアに反映する
+	if( GSYS.DrawSetting.MatchHardware3DMatrix == FALSE )
+		Graphics_DrawSetting_ApplyLib3DMatrixToHardware() ;
+
+	// Uniform の更新
+	Graphics_Linux_DeviceState_UpdateShaderUniform( GLINUX.Device.State.SetShader, 3 ) ;
+
+	// 頂点データのセットアップ
+	Graphics_Linux_DeviceState_SetupShaderVertexData(
+		GLINUX.Device.State.SetShader,
+		&g_BaseSimpleVertexShaderInfo[ LINUX_VERTEX_INPUTLAYOUT_SHADER_3D ].InputInfo,
+		Vertex
+	) ;
+
+	// 描画
+	glDrawElements( g_DXPrimitiveTypeToGLES2PrimitiveType[ PrimitiveType ], IndexNum, GL_UNSIGNED_INT, Indices );
 	GSYS.PerformanceInfo.NowFrameDrawCallCount ++ ;
 
 	// 終了
