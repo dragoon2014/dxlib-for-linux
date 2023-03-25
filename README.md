@@ -4,8 +4,10 @@ DxLib for Linux
 DXライブラリをLinuxでも動作するように移植してみました。
 
 # 使用方法
-
 ```
+# 必要なパッケージを取得します。APT を用いないシステムでは、等価なものを適切な方法で取得してください。
+sudo apt install git g++ unzip libtiff-dev libopenal-dev libvorbis-dev libopusfile-dev libtheora-dev
+
 # 以下でライブラリがDxLibMake/libDxLib.aに生成されます。
 # サンプルもあわせてsamples以下に生成されます。
 # 初回実行時にはDXライブラリのソースをダウンロードするのでオンラインである必要があります。
