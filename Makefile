@@ -224,7 +224,7 @@ patch: extract-source
 .PHONY: extract-source
 extract-source: get-source
 	rm -rf DxLibMake
-	$(UNZIP) -O cp932 DxLibMake$(DXLIB_VER).zip
+	$(UNZIP) DxLibMake$(DXLIB_VER).zip
 	find DxLibMake -type f | while read f; do cat "$$f" | tr -d '\r' > tmp; \
     (iconv -f utf-8 -t utf-8 tmp -o "$$f" 2>/dev/null) \
     || (iconv -f cp932 -t utf-8 tmp -o "$$f"); rm -f tmp; done
