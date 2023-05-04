@@ -31,6 +31,8 @@ LDFLAG_LIBS := $(addprefix -l, $(DEP_LIBS))
 
 DXLIB_A_OUT_NAME := libDxLib.a
 
+OBJ_DIR := .
+
 SRCS := $(addprefix DxLibMake/,\
         DxASyncLoad \
         DxArchive_ \
@@ -84,7 +86,7 @@ SRCS := $(addprefix DxLibMake/,\
         Linux/DxWindowLinux \
     )
 
-OBJS := $(addsuffix .o,$(SRCS))
+OBJS := $(addprefix $(OBJ_DIR)/,$(addsuffix .o,$(SRCS)))
 
 SAMPLES := $(addprefix samples/,\
         sample01_minimum \
@@ -106,15 +108,16 @@ all: $(SAMPLES)
 $(SAMPLES): lib
 	$(CXX) -o $@ $@.cpp \
     -I DxLibMake $(CXXFLAGS) \
-    DxLibMake/$(DXLIB_A_OUT_NAME) \
+    $(OBJ_DIR)/DxLibMake/$(DXLIB_A_OUT_NAME) \
     $(LDFLAG_LIBS) \
 
 .PHONY: lib
 lib: $(OBJS)
-	rm -f DxLibMake/$(DXLIB_A_OUT_NAME)
-	ar rcs DxLibMake/$(DXLIB_A_OUT_NAME) $(OBJS)
+	rm -f $(OBJ_DIR)/DxLibMake/$(DXLIB_A_OUT_NAME)
+	ar rcs $(OBJ_DIR)/DxLibMake/$(DXLIB_A_OUT_NAME) $(OBJS)
 
-.cpp.o: patch
+$(OBJ_DIR)/%.o: %.cpp patch
+	mkdir -p $(OBJ_DIR)/DxLibMake $(OBJ_DIR)/DxLibMake/Linux
 	$(CXX) -o $@ -c $< $(CXXFLAGS)
 
 .PHONY: patch
