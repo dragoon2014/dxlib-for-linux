@@ -587,8 +587,18 @@ extern int GetClipboardText_WCHAR_T_PF( wchar_t *DestBuffer )
 // クリップボードにテキストデータを格納する
 extern int SetClipboardText_WCHAR_T_PF( const wchar_t *Text )
 {
-	// 未実装
-	return -1 ;
+	XSetSelectionOwner(GLINUX.Device.Screen.XDisplay, GLINUX.Device.Screen._atom_CLIPBOARD, GLINUX.Device.Screen.XWindow, CurrentTime);
+	auto len = ConvertStringCharCodeFormat(WCHAR_T_CHARCODEFORMAT, Text, DX_CHARCODEFORMAT_UTF8, NULL);
+	DXFREE(GLINUX.Device.Screen._clipboard_bufPtr);
+	GLINUX.Device.Screen._clipboard_bufPtr = (char*)DXALLOC(len);
+	GLINUX.Device.Screen._clipboard_bufLen = len;
+	if( GLINUX.Device.Screen._clipboard_bufPtr == NULL ) {
+		GLINUX.Device.Screen._clipboard_bufLen = 0;
+		return -1;
+	}
+
+	auto ret = ConvertStringCharCodeFormat(WCHAR_T_CHARCODEFORMAT, Text, DX_CHARCODEFORMAT_UTF8, GLINUX.Device.Screen._clipboard_bufPtr);
+	return 0;
 }
 #ifndef DX_NON_NAMESPACE
 
@@ -840,6 +850,43 @@ extern int NS_ProcessMessage( void )
 				XFree( rets );
 			}
 			break ;
+		case SelectionClear:
+			DXFREE( GLINUX.Device.Screen._clipboard_bufPtr );
+			GLINUX.Device.Screen._clipboard_bufPtr = NULL;
+			GLINUX.Device.Screen._clipboard_bufLen = 0;
+			break;
+		case SelectionRequest:
+			XSelectionEvent r;
+			r.type      = SelectionNotify;
+			r.requestor = ev.xselectionrequest.requestor;
+			r.selection = ev.xselectionrequest.selection;
+			r.target    = ev.xselectionrequest.target;
+			r.property  = ev.xselectionrequest.property;
+			r.time      = ev.xselectionrequest.time;
+			//printf("selrequestev: owner:%d reqwin:%d sel:%d[%s] tgt:%d[%s] prop:%d[%s]\n",
+			//	ev.xselectionrequest.owner, r.requestor,
+			//	r.selection, r.selection?XGetAtomName(xdpy, r.selection):"0",
+			//	r.target,    r.target   ?XGetAtomName(xdpy, r.target   ):"0",
+			//	r.property,  r.property ?XGetAtomName(xdpy, r.property ):"0");
+			if(r.selection != GLINUX.Device.Screen._atom_CLIPBOARD){
+			//	printf("not CLIPBOARD selection");
+				r.property = None;
+			}else if(r.property == None){
+			//	printf("property is None\n");
+			}else if(r.target == GLINUX.Device.Screen._atom_TARGETS){
+			//	printf("target is TARGETS\n");
+				XChangeProperty( xdpy, r.requestor, r.property, XA_ATOM, 32, PropModeReplace, (unsigned char*)&GLINUX.Device.Screen._atom_UTF8_STRING, 1 );
+			}else if(r.target == GLINUX.Device.Screen._atom_UTF8_STRING){
+			//	printf("target is UTF8_STRING\n");
+			//	printf("len:%d ptr:%s\n", GLINUX.Device.Screen._clipboard_bufLen, GLINUX.Device.Screen._clipboard_bufPtr);
+				XChangeProperty( xdpy, r.requestor, r.property, GLINUX.Device.Screen._atom_UTF8_STRING, 8, PropModeReplace, (unsigned char*)GLINUX.Device.Screen._clipboard_bufPtr, GLINUX.Device.Screen._clipboard_bufLen-1 );
+			}else{
+			//	printf("unsupported target: %d[%s]\n", r.target,
+			//		ev.xselectionrequest.target?XGetAtomName(xdpy, ev.xselectionrequest.target):"0");
+				r.property = None;
+			}
+			XSendEvent( xdpy, r.requestor, False, NoEventMask, (XEvent*)&r );
+			break;
 		// マウスの状態
 		case ButtonPress :
 		case ButtonRelease :

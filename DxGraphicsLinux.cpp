@@ -3561,11 +3561,17 @@ extern	int		Graphics_Linux_Device_Create( void )
 	GLINUX.Device.Screen._atom_XdndActionCopy = XInternAtom(xdpy, "XdndActionCopy", False) ;
 	GLINUX.Device.Screen._atom_XdndSelection = XInternAtom(xdpy, "XdndSelection", False) ;
 	GLINUX.Device.Screen._atom_text_uri_list = XInternAtom(xdpy, "text/uri-list", False) ;
+	GLINUX.Device.Screen._atom_CLIPBOARD = XInternAtom(xdpy, "CLIPBOARD", False) ;
+	GLINUX.Device.Screen._atom_TARGETS = XInternAtom(xdpy, "TARGETS", False) ;
+	GLINUX.Device.Screen._atom_UTF8_STRING = XInternAtom(xdpy, "UTF8_STRING", False) ;
+	GLINUX.Device.Screen._atom_INCR = XInternAtom(xdpy, "INCR", False) ;
 	GLINUX.Device.Screen._xdnd_cache_itsForMe = 0;
 	GLINUX.Device.Screen._xdnd_cache_sourceWindow = 0;
 	GLINUX.Device.Screen._xdnd_bufPtr = NULL;
 	GLINUX.Device.Screen._xdnd_bufLen = 0;
 	GLINUX.Device.Screen._xdnd_bufPos = 0;
+	GLINUX.Device.Screen._clipboard_bufPtr = NULL;
+	GLINUX.Device.Screen._clipboard_bufLen = 0;
 	GLINUX.Device.Screen.Display = eglGetDisplay( xdpy ) ;
 
 	// EGL を初期化
@@ -4038,6 +4044,12 @@ extern	int		Graphics_Linux_Device_Delete( void )
 	GLINUX.Device.State.TargetFrameBufferHeight = 0 ;
 	GLINUX.Device.State.SetVertexBuffer = 0 ;
 
+	if( GLINUX.Device.Screen._clipboard_bufPtr != NULL )
+	{
+		DXFREE( GLINUX.Device.Screen._clipboard_bufPtr ) ;
+		GLINUX.Device.Screen._clipboard_bufPtr = NULL ;
+		GLINUX.Device.Screen._clipboard_bufLen = 0 ;
+	}
 	if( GLINUX.Device.Screen.XDisplay != NULL )
 	{
 		XCloseDisplay( GLINUX.Device.Screen.XDisplay ) ;

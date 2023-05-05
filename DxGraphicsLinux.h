@@ -939,12 +939,18 @@ struct GRAPHICS_HARDDATA_LINUX_SCREENINFO
 	Atom						_atom_XdndActionCopy ;	// ドラッグアンドドロップ用Atom
 	Atom						_atom_XdndSelection ;	// ドラッグアンドドロップ用Atom
 	Atom						_atom_text_uri_list ;	// ドラッグアンドドロップ用Atom
+	Atom						_atom_CLIPBOARD ;	// クリップボード用Atom
+	Atom						_atom_TARGETS ;	// クリップボード用Atom
+	Atom						_atom_UTF8_STRING ;	// クリップボード用Atom
+	Atom						_atom_INCR ;	// INCR Property（クリップボードなど）用Atom
 	bool						_xdnd_cache_itsForMe ;	// ドラッグアンドドロップ用キャッシュ
 	Window						_xdnd_cache_sourceWindow ;	// ドラッグアンドドロップ用キャッシュ
 	char*						_xdnd_bufPtr ;	// ドラッグアンドドロップ用バッファ:ポインタ
 	size_t						_xdnd_bufLen ;	// ドラッグアンドドロップ用バッファ:現在のバッファ長
 	size_t						_xdnd_bufPos ;	// ドラッグアンドドロップ用バッファ:処理済みの位置
 	size_t						_xdnd_bufNum ;	// ドラッグアンドドロップ用バッファ:残りファイル数
+	char*						_clipboard_bufPtr ;	// クリップボード用バッファ:ポインタ
+	size_t						_clipboard_bufLen ;	// クリップボード用バッファ:現在のバッファ長
 	EGLConfig					Config ;	// EGLのConfig値、Surface再作成に使用
 } ;
 

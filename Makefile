@@ -100,6 +100,7 @@ SAMPLES := $(addprefix samples/,\
         sample09_window \
         sample10_dnd \
         sample11_change_font \
+        sample12_clipboard \
     )
 
 .PHONY: all
