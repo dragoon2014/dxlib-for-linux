@@ -2,6 +2,6 @@
 
 /DxLibMake/
 
-/samples/*.*
+/samples/*
 !/samples/*.cpp
 !/samples/assets/
