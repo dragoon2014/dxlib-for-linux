@@ -1,0 +1,5 @@
+*.zip
+
+/samples/*.*
+!/samples/*.cpp
+!/samples/assets/
