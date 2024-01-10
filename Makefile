@@ -19,6 +19,7 @@ CXXFLAGS := -g -O0 \
 #-DDX_NON_PNGREAD \
 #-DDX_NON_MODEL \
 #-DDX_NON_OGGVORBIS \
+#-DDX_NON_SOUND \
 
 # 要不要に応じて変更してください
 DEP_LIBS := \
@@ -86,6 +87,7 @@ SRCS := $(addprefix DxLibMake/,\
         Linux/DxWindowLinux \
     )
 
+SRCS_CPP := $(addprefix $(OBJ_DIR)/,$(addsuffix .cpp,$(SRCS)))
 OBJS := $(addprefix $(OBJ_DIR)/,$(addsuffix .o,$(SRCS)))
 
 SAMPLES := $(addprefix samples/,\
@@ -106,23 +108,37 @@ SAMPLES := $(addprefix samples/,\
 .PHONY: all
 all: $(SAMPLES)
 
-$(SAMPLES): lib
-	$(CXX) -o $@ $@.cpp \
+.PHONY: samples
+samples: $(SAMPLES)
+
+#$(SAMPLES): lib
+
+$(SAMPLES): %: %.cpp $(OBJ_DIR)/DxLibMake/$(DXLIB_A_OUT_NAME)
+	$(CXX) -o $@ $< \
     -I DxLibMake $(CXXFLAGS) \
     $(OBJ_DIR)/DxLibMake/$(DXLIB_A_OUT_NAME) \
     $(LDFLAG_LIBS) \
 
 .PHONY: lib
-lib: $(OBJS)
+lib: $(OBJ_DIR)/DxLibMake/$(DXLIB_A_OUT_NAME)
+
+$(OBJ_DIR)/DxLibMake/$(DXLIB_A_OUT_NAME): $(OBJS)
 	rm -f $(OBJ_DIR)/DxLibMake/$(DXLIB_A_OUT_NAME)
 	ar rcs $(OBJ_DIR)/DxLibMake/$(DXLIB_A_OUT_NAME) $(OBJS)
 
-$(OBJ_DIR)/%.o: %.cpp patch
+.PHONY: objs
+objs: $(OBJS)
+
+$(OBJ_DIR)/%.o: %.cpp DxLibMake/.patched
 	mkdir -p $(OBJ_DIR)/DxLibMake $(OBJ_DIR)/DxLibMake/Linux
 	$(CXX) -o $@ -c $< $(CXXFLAGS)
 
+$(SRCS_CPP): DxLibMake/.patched
+
 .PHONY: patch
-patch: extract-source
+patch: DxLibMake/.patched
+
+DxLibMake/.patched: DxLibMake/.extracted
 	# Linux用コンパイル設定追加
 	patch -uNp1 --no-backup-if-mismatch -d DxLibMake < 0001-DxCompileConfig.patch
 	# Linux向け型定義
@@ -217,24 +233,27 @@ patch: extract-source
 	cp -a DxInputLinux.cpp DxLibMake/Linux
 	#  (iOSベース？)
 	cp -a DxFontLinux.cpp DxLibMake/Linux
-	
+
+	touch DxLibMake/.patched
 	@# debug
 	@#rm -rf DxLibMake.old DxLibMake.new
 	@#cp -ai DxLibMake{,.old}
 	@#cp -ai DxLibMake{,.new}
 
-
-
 .PHONY: extract-source
-extract-source: get-source
-	rm -rf DxLibMake
+extract-source: DxLibMake/.extracted
+
+DxLibMake/.extracted: DxLibMake$(DXLIB_VER).zip
 	$(UNZIP) -O cp932 DxLibMake$(DXLIB_VER).zip
 	find DxLibMake -type f | while read f; do cat "$$f" | tr -d '\r' > tmp; \
     (iconv -f utf-8 -t utf-8 tmp -o "$$f" 2>/dev/null) \
     || (iconv -f cp932 -t utf-8 tmp -o "$$f"); rm -f tmp; done
+	touch DxLibMake/.extracted
 
 .PHONY: get-source
-get-source:
+get-source: DxLibMake$(DXLIB_VER).zip
+
+DxLibMake$(DXLIB_VER).zip:
 	[ -f "DxLibMake$(DXLIB_VER).zip" ] || \
     wget -nc https://dxlib.xsrv.jp/DxLib/DxLibMake$(DXLIB_VER).zip
 
