@@ -267,6 +267,25 @@ extern int NS_DxLib_End( void )
 		return 0 ;
 	}
 
+#ifndef DX_NON_ASYNCLOAD
+	// 非同期読み込みをしない
+	NS_SetUseASyncLoadFlag( FALSE ) ;
+
+	// 全ての非同期読み込みの終了待ち
+	while( NS_GetASyncLoadNum() > 0 )
+	{
+		// 削除リクエストが来ているハンドルを削除する
+		DeleteRequestHandleDelete( FALSE ) ;
+
+		// メインスレッドが処理する非同期読み込みの処理を行う
+		ProcessASyncLoadRequestMainThread() ;
+		Thread_Sleep( 1 ) ;
+	}
+
+	// 削除リクエストが来ているハンドルを全て削除する
+	DeleteRequestHandleDelete( TRUE ) ;
+#endif // DX_NON_ASYNCLOAD
+
 #ifndef DX_NON_SOFTIMAGE
 	// 登録した全てのソフトイメージを削除
 	InitSoftImage() ;
@@ -571,14 +590,14 @@ extern int NS_GetBatteryLifePercent( void )
 // クリップボード関係
 
 // クリップボードに格納されているテキストデータを読み出す、-1 の場合はクリップボードにテキストデータは無いということ( DestBuffer に NULL を渡すと格納に必要なデータサイズが返ってくる )
-extern int GetClipboardText_PF( TCHAR *DestBuffer )
+extern int GetClipboardText_PF( TCHAR *DestBuffer, int DestBufferBytes )
 {
 	// 未実装
 	return -1 ;
 }
 
 // クリップボードに格納されているテキストデータを読み出す、-1 の場合はクリップボードにテキストデータは無いということ( DestBuffer に NULL を渡すと格納に必要なデータサイズが返ってくる )
-extern int GetClipboardText_WCHAR_T_PF( wchar_t *DestBuffer )
+extern int GetClipboardText_WCHAR_T_PF( wchar_t *DestBuffer, int DestBufferBytes )
 {
 	// 未実装
 	return -1 ;
@@ -670,6 +689,9 @@ extern int NS_ProcessMessage( void )
 #endif // DX_NON_SOUND
 
 #ifndef DX_NON_ASYNCLOAD
+	// 削除リクエストが来ているハンドルを削除する
+	DeleteRequestHandleDelete( FALSE ) ;
+
 	// メインスレッドが処理する非同期読み込みの処理を行う
 	ProcessASyncLoadRequestMainThread() ;
 #endif // DX_NON_ASYNCLOAD
