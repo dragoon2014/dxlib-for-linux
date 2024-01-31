@@ -38,7 +38,8 @@ int main(){
     SetDrawScreen(DX_SCREEN_BACK);
 
     auto c = GetColor(0xab, 0xcd, 0xef);
-    int currKey, prevKey;
+    int currKey = 0;
+    int prevKey = 0;
     clearLog();
     int len = 1;
     TCHAR* str = (TCHAR*)DxAlloc(len);
