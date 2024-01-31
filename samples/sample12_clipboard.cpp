@@ -7,7 +7,7 @@
 
 void clearLog(){
     clsDx();
-    printfDx("\
+    printfDx(_T("\
 keys:\n\
   C: clear\n\
   1: SetClipboardText(\"Hello world!\")\n\
@@ -19,12 +19,13 @@ keys:\n\
   7: GetClipboardText(str, len)\n\
   8: [str(s)]\n\
   9: str(02x)\n\
-");
+  0: str(02x)(forced unsigned char)\n\
+"));
 }
 
 int main(){
 #ifdef WINDOWS_DESKTOP_OS
-    SetUseCharCodeFormat(DX_CHARCODEFORMAT_UTF8);
+    //SetUseCharCodeFormat(DX_CHARCODEFORMAT_UTF8);
     SetWindowSizeChangeEnableFlag(1, 0);
     ChangeWindowMode(1);
     SetAlwaysRunFlag(1);
@@ -40,22 +41,24 @@ int main(){
     int currKey, prevKey;
     clearLog();
     int len = 1;
-    char* str = (char*)DxAlloc(len);
+    TCHAR* str = (TCHAR*)DxAlloc(len);
+    unsigned char* str0 = (unsigned char*)str;
     while(ProcessMessage() != -1){
         ClearDrawScreen();
 
         currKey = CheckHitKeyAll();
         switch(currKey & (~prevKey)){
         case KEY_INPUT_C: clearLog(); break;
-        case KEY_INPUT_1: printfDx("1: %d\n", SetClipboardText("Hello world!")); break;
-        case KEY_INPUT_2: printfDx("2: %d\n", SetClipboardText("あいうえお")); break;
-        case KEY_INPUT_3: printfDx("3: %d\n", SetClipboardTextWithStrLen("Hello world!", 5)); break;
-        case KEY_INPUT_4: printfDx("4: %d\n", SetClipboardText("")); break;
-        case KEY_INPUT_5: printfDx("5: %d\n", len = GetClipboardText(NULL, 0)); break;
-        case KEY_INPUT_6: printfDx("6: %p\n", str = (char*)DxRealloc(str, len)); break;
-        case KEY_INPUT_7: printfDx("7: %d\n", GetClipboardText(str, len)); break;
-        case KEY_INPUT_8: printfDx("8: [%s]\n", str); break;
-        case KEY_INPUT_9: printfDx("9: "); for(int i=0; i<len; i++){ printfDx("%02x ", (unsigned char)str[i]); } printfDx("\n", str); break;
+        case KEY_INPUT_1: printfDx(_T("1: %d\n"), SetClipboardText(_T("Hello world!"))); break;
+        case KEY_INPUT_2: printfDx(_T("2: %d\n"), SetClipboardText(_T("あいうえお"))); break;
+        case KEY_INPUT_3: printfDx(_T("3: %d\n"), SetClipboardTextWithStrLen(_T("Hello world!"), 5)); break;
+        case KEY_INPUT_4: printfDx(_T("4: %d\n"), SetClipboardText(_T(""))); break;
+        case KEY_INPUT_5: printfDx(_T("5: %d\n"), len = GetClipboardText(NULL, 0)); break;
+        case KEY_INPUT_6: printfDx(_T("6: %p\n"), str = (TCHAR*)DxRealloc(str, len)); str0=(unsigned char*)str; break;
+        case KEY_INPUT_7: printfDx(_T("7: %d\n"), GetClipboardText(str, len)); break;
+        case KEY_INPUT_8: printfDx(_T("8: [%s]\n"), str); break;
+        case KEY_INPUT_9: printfDx(_T("9: ")); for(int i=0; i<len/(sizeof(TCHAR)); i++){ printfDx(_T("%x "), str[i]); } printfDx(_T("\n"), str); break;
+        case KEY_INPUT_0: printfDx(_T("0: ")); for(int i=0; i<len; i++){ printfDx(_T("%02x "), str0[i]); } printfDx(_T("\n"), str); break;
         default: break;
         }
         prevKey = currKey;
@@ -63,10 +66,10 @@ int main(){
             // for debugging
             int l=0;
             #ifdef __linux__
-            DrawFormatString(400, 20*l++, 0xabcdef, "ptr:%p", GLINUX.Device.Screen._clipboard_bufPtr);
-            DrawFormatString(400, 20*l++, 0xabcdef, "len:%d", GLINUX.Device.Screen._clipboard_bufLen);
-            DrawFormatString(400, 20*l++, 0xabcdef, "get ptr:%p", GLINUX.Device.Screen._clipboard_get_bufPtr);
-            DrawFormatString(400, 20*l++, 0xabcdef, "get len:%d", GLINUX.Device.Screen._clipboard_get_bufLen);
+            DrawFormatString(400, 20*l++, 0xabcdef, _T("ptr:%p"), GLINUX.Device.Screen._clipboard_bufPtr);
+            DrawFormatString(400, 20*l++, 0xabcdef, _T("len:%d"), GLINUX.Device.Screen._clipboard_bufLen);
+            DrawFormatString(400, 20*l++, 0xabcdef, _T("get ptr:%p"), GLINUX.Device.Screen._clipboard_get_bufPtr);
+            DrawFormatString(400, 20*l++, 0xabcdef, _T("get len:%d"), GLINUX.Device.Screen._clipboard_get_bufLen);
             #endif
         }
         ScreenFlip();
