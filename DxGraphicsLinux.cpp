@@ -3576,8 +3576,8 @@ extern	int		Graphics_Linux_Device_Create( void )
 	GLINUX.Device.Screen._xdnd_bufPtr = NULL;
 	GLINUX.Device.Screen._xdnd_bufLen = 0;
 	GLINUX.Device.Screen._xdnd_bufPos = 0;
-	GLINUX.Device.Screen._clipboard_bufPtr = NULL;
-	GLINUX.Device.Screen._clipboard_bufLen = 0;
+	GLINUX.Device.Screen._clipboard_set_bufPtr = NULL;
+	GLINUX.Device.Screen._clipboard_set_bufLen = 0;
 	GLINUX.Device.Screen._clipboard_get_bufPtr = NULL;
 	GLINUX.Device.Screen._clipboard_get_bufLen = 0;
 	GLINUX.Device.Screen.Display = eglGetDisplay( xdpy ) ;
@@ -4052,11 +4052,11 @@ extern	int		Graphics_Linux_Device_Delete( void )
 	GLINUX.Device.State.TargetFrameBufferHeight = 0 ;
 	GLINUX.Device.State.SetVertexBuffer = 0 ;
 
-	if( GLINUX.Device.Screen._clipboard_bufPtr != NULL )
+	if( GLINUX.Device.Screen._clipboard_set_bufPtr != NULL )
 	{
-		DXFREE( GLINUX.Device.Screen._clipboard_bufPtr ) ;
-		GLINUX.Device.Screen._clipboard_bufPtr = NULL ;
-		GLINUX.Device.Screen._clipboard_bufLen = 0 ;
+		DXFREE( GLINUX.Device.Screen._clipboard_set_bufPtr ) ;
+		GLINUX.Device.Screen._clipboard_set_bufPtr = NULL ;
+		GLINUX.Device.Screen._clipboard_set_bufLen = 0 ;
 	}
 	if( GLINUX.Device.Screen.XDisplay != NULL )
 	{

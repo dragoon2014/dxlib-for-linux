@@ -66,8 +66,8 @@ int main(){
             // for debugging
             int l=0;
             #ifdef __linux__
-            DrawFormatString(400, 20*l++, 0xabcdef, _T("ptr:%p"), GLINUX.Device.Screen._clipboard_bufPtr);
-            DrawFormatString(400, 20*l++, 0xabcdef, _T("len:%d"), GLINUX.Device.Screen._clipboard_bufLen);
+            DrawFormatString(400, 20*l++, 0xabcdef, _T("set ptr:%p"), GLINUX.Device.Screen._clipboard_set_bufPtr);
+            DrawFormatString(400, 20*l++, 0xabcdef, _T("set len:%d"), GLINUX.Device.Screen._clipboard_set_bufLen);
             DrawFormatString(400, 20*l++, 0xabcdef, _T("get ptr:%p"), GLINUX.Device.Screen._clipboard_get_bufPtr);
             DrawFormatString(400, 20*l++, 0xabcdef, _T("get len:%d"), GLINUX.Device.Screen._clipboard_get_bufLen);
             #endif
