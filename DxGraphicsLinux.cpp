@@ -3578,6 +3578,8 @@ extern	int		Graphics_Linux_Device_Create( void )
 	GLINUX.Device.Screen._xdnd_bufPos = 0;
 	GLINUX.Device.Screen._clipboard_bufPtr = NULL;
 	GLINUX.Device.Screen._clipboard_bufLen = 0;
+	GLINUX.Device.Screen._clipboard_get_bufPtr = NULL;
+	GLINUX.Device.Screen._clipboard_get_bufLen = 0;
 	GLINUX.Device.Screen.Display = eglGetDisplay( xdpy ) ;
 
 	// EGL を初期化

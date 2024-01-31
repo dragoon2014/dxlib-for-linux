@@ -589,19 +589,110 @@ extern int NS_GetBatteryLifePercent( void )
 
 // クリップボード関係
 
+Bool PredicateClipboardTargetsNotify(Display *d, XEvent *ev, XPointer arg){
+    return (ev->type == SelectionNotify)
+        && (ev->xselection.requestor == GLINUX.Device.Screen.XWindow)
+        && (ev->xselection.selection == GLINUX.Device.Screen._atom_CLIPBOARD)
+        && (ev->xselection.target == GLINUX.Device.Screen._atom_TARGETS)
+        && (ev->xselection.property == GLINUX.Device.Screen._atom_CLIPBOARD);
+}
+Bool PredicateClipboardUtf8StringNotify(Display *d, XEvent *ev, XPointer arg){
+    return (ev->type == SelectionNotify)
+        && (ev->xselection.requestor == GLINUX.Device.Screen.XWindow)
+        && (ev->xselection.selection == GLINUX.Device.Screen._atom_CLIPBOARD)
+        && (ev->xselection.target == GLINUX.Device.Screen._atom_UTF8_STRING)
+        && (ev->xselection.property == GLINUX.Device.Screen._atom_CLIPBOARD);
+}
+size_t CopyClipboardTextToInternal(void* buf, size_t len){
+    DXFREE(GLINUX.Device.Screen._clipboard_get_bufPtr);
+    // lenはゼロ終端を含まないので注意
+    GLINUX.Device.Screen._clipboard_get_bufPtr = (char*)DXALLOC(len+1);
+    GLINUX.Device.Screen._clipboard_get_bufLen = len+1;
+    if( GLINUX.Device.Screen._clipboard_get_bufPtr == NULL ) {
+        GLINUX.Device.Screen._clipboard_get_bufLen = 0;
+        return -1;
+    }
+    _MEMCPY(GLINUX.Device.Screen._clipboard_get_bufPtr, buf, len);
+    GLINUX.Device.Screen._clipboard_get_bufPtr[len] = '\0';
+    return len+1;
+}
+int GetWindowPropertyBulk(Display *d, Window w, Atom property, size_t(bulk)(void*, size_t)){
+    Atom retType;
+    int retFormat;
+    unsigned long retNum;
+    unsigned long leftByte;
+    unsigned char* p;
+    int ret;
+    XGetWindowProperty(d, w, property, 0, 0x7fffffff, False, AnyPropertyType, &retType, &retFormat, &retNum, &leftByte, &p);
+    //printf("prop: rT:%lu rF:%d rN:%lu lB:%lu p:%p\n", retType, retFormat, retNum, leftByte, p);
+    if(bulk){
+        ret = (int)bulk(p, retNum); // TODO: 2GB+
+    }
+    XFree(p);
+    return ret;
+}
+
+int GetClipboardText_PF_LinuxCommon(void *DestBuffer, int DestBufferBytes, int isUnicode){
+    // isUnicodeは現状未対応
+    if(!DestBuffer){
+        // 第一引数がNULL、内部バッファにコピー
+        Atom owner = XGetSelectionOwner(GLINUX.Device.Screen.XDisplay, GLINUX.Device.Screen._atom_CLIPBOARD);
+        if(owner == None){
+            // クリップボード所有者なし
+            return -1;
+        }
+        if(owner == GLINUX.Device.Screen.XWindow){
+            // クリップボード所有者が自分、クリップボード設定用バッファからコピー
+            DXFREE(GLINUX.Device.Screen._clipboard_get_bufPtr);
+            GLINUX.Device.Screen._clipboard_get_bufPtr = (char*)DXALLOC(GLINUX.Device.Screen._clipboard_bufLen);
+            GLINUX.Device.Screen._clipboard_get_bufLen = GLINUX.Device.Screen._clipboard_bufLen;
+            if( GLINUX.Device.Screen._clipboard_get_bufPtr == NULL ) {
+                GLINUX.Device.Screen._clipboard_get_bufLen = 0;
+                return -1;
+            }
+            _MEMCPY(GLINUX.Device.Screen._clipboard_get_bufPtr, GLINUX.Device.Screen._clipboard_bufPtr, GLINUX.Device.Screen._clipboard_get_bufLen);
+            return GLINUX.Device.Screen._clipboard_get_bufLen;
+        }
+        XEvent ev;
+        XConvertSelection(GLINUX.Device.Screen.XDisplay, GLINUX.Device.Screen._atom_CLIPBOARD, GLINUX.Device.Screen._atom_TARGETS, GLINUX.Device.Screen._atom_CLIPBOARD, GLINUX.Device.Screen.XWindow, CurrentTime);
+        XIfEvent(GLINUX.Device.Screen.XDisplay, &ev, &PredicateClipboardTargetsNotify, NULL);
+        XConvertSelection(GLINUX.Device.Screen.XDisplay, GLINUX.Device.Screen._atom_CLIPBOARD, GLINUX.Device.Screen._atom_UTF8_STRING, GLINUX.Device.Screen._atom_CLIPBOARD, GLINUX.Device.Screen.XWindow, CurrentTime);
+        XIfEvent(GLINUX.Device.Screen.XDisplay, &ev, &PredicateClipboardUtf8StringNotify, NULL);
+        return GetWindowPropertyBulk(GLINUX.Device.Screen.XDisplay, ev.xselection.requestor, GLINUX.Device.Screen._atom_CLIPBOARD, &CopyClipboardTextToInternal);
+    }else{
+        // 第一引数がポインタ、内部バッファからコピー
+        if(GLINUX.Device.Screen._clipboard_get_bufPtr == NULL || GLINUX.Device.Screen._clipboard_get_bufLen == 0){
+            // ポインタが無効か空であれば失敗
+            return -1;
+        }
+        if(DestBufferBytes != GLINUX.Device.Screen._clipboard_get_bufLen){
+            // 引数とバッファサイズと一致しない場合は失敗
+            DXFREE(GLINUX.Device.Screen._clipboard_get_bufPtr);
+            GLINUX.Device.Screen._clipboard_get_bufPtr = NULL;
+            GLINUX.Device.Screen._clipboard_get_bufLen = 0;
+            return -1;
+        }
+        _MEMCPY(DestBuffer, GLINUX.Device.Screen._clipboard_get_bufPtr, DestBufferBytes);
+        // 第一引数がポインタでの二回連続呼び出し抑止
+        DXFREE(GLINUX.Device.Screen._clipboard_get_bufPtr);
+        GLINUX.Device.Screen._clipboard_get_bufPtr = NULL;
+        GLINUX.Device.Screen._clipboard_get_bufLen = 0;
+        return 0;
+    }
+}
+
 // クリップボードに格納されているテキストデータを読み出す、-1 の場合はクリップボードにテキストデータは無いということ( DestBuffer に NULL を渡すと格納に必要なデータサイズが返ってくる )
 extern int GetClipboardText_PF( TCHAR *DestBuffer, int DestBufferBytes )
 {
-	// 未実装
-	return -1 ;
+	return GetClipboardText_PF_LinuxCommon(DestBuffer, DestBufferBytes, 0) ;
 }
 
 // クリップボードに格納されているテキストデータを読み出す、-1 の場合はクリップボードにテキストデータは無いということ( DestBuffer に NULL を渡すと格納に必要なデータサイズが返ってくる )
 extern int GetClipboardText_WCHAR_T_PF( wchar_t *DestBuffer, int DestBufferBytes )
 {
-	// 未実装
-	return -1 ;
+	return GetClipboardText_PF_LinuxCommon(DestBuffer, DestBufferBytes, 1) ;
 }
+
 
 // クリップボードにテキストデータを格納する
 extern int SetClipboardText_WCHAR_T_PF( const wchar_t *Text )

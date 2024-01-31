@@ -951,6 +951,8 @@ struct GRAPHICS_HARDDATA_LINUX_SCREENINFO
 	size_t						_xdnd_bufNum ;	// ドラッグアンドドロップ用バッファ:残りファイル数
 	char*						_clipboard_bufPtr ;	// クリップボード用バッファ:ポインタ
 	size_t						_clipboard_bufLen ;	// クリップボード用バッファ:現在のバッファ長
+	char*						_clipboard_get_bufPtr ;	// クリップボード取得用バッファ:ポインタ
+	size_t						_clipboard_get_bufLen ;	// クリップボード取得用バッファ:現在のバッファ長
 	EGLConfig					Config ;	// EGLのConfig値、Surface再作成に使用
 } ;
 
