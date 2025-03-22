@@ -22,7 +22,7 @@ SOFTWARE.
 
 
 The dxlib-for-linux contains the code of the automatic or manually converted DX Library.
-DX Library Copyright (C) 2001-2024 Takumi Yamada.
+DX Library Copyright (C) 2001-2025 Takumi Yamada.
 
 
 insufficient_include/{misc.h,os.h} are part of Vorbis library.

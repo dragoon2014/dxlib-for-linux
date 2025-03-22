@@ -2934,48 +2934,58 @@ extern	int		Graphics_CheckRequiredNormalImageConv_BaseImageFormat_PF(
 	int RgbConvFlag   = FALSE ;
 	int AlphaConvFlag = FALSE ;
 
-	if( Orig->FormatDesc.TextureFlag )
+	if( RgbBaseImageFormat != DX_BASEIMAGE_FORMAT_NORMAL )
 	{
-		if( RgbBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT2 || RgbBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT4 )
-		{
-			RgbConvFlag = TRUE ;
-		}
-
-		if( AlphaBaseImageFormat >= 0 )
-		{
-			if( AlphaBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT2 || AlphaBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT4 )
-			{
-				AlphaConvFlag = TRUE ;
-			}
-		}
+		RgbConvFlag = TRUE ;
 	}
-	else
+
+	if( AlphaBaseImageFormat >= 0 && AlphaBaseImageFormat != DX_BASEIMAGE_FORMAT_NORMAL )
 	{
-		if( RgbBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT1 ||
-			RgbBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT2 ||
-			RgbBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT3 ||
-			RgbBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT4 ||
-			RgbBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT5 ||
-			RgbBaseImageFormat == DX_BASEIMAGE_FORMAT_BC7_UNORM ||
-			RgbBaseImageFormat == DX_BASEIMAGE_FORMAT_BC7_UNORM_SRGB )
-		{
-			RgbConvFlag = TRUE ;
-		}
-
-		if( AlphaBaseImageFormat >= 0 )
-		{
-			if( AlphaBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT1 ||
-				AlphaBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT2 ||
-				AlphaBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT3 ||
-				AlphaBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT4 ||
-				AlphaBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT5 ||
-				AlphaBaseImageFormat == DX_BASEIMAGE_FORMAT_BC7_UNORM ||
-				AlphaBaseImageFormat == DX_BASEIMAGE_FORMAT_BC7_UNORM_SRGB )
-			{
-				AlphaConvFlag = TRUE ;
-			}
-		}
+		AlphaConvFlag = TRUE ;
 	}
+
+//	if( Orig->FormatDesc.TextureFlag )
+//	{
+//		if( RgbBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT2 || RgbBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT4 )
+//		{
+//			RgbConvFlag = TRUE ;
+//		}
+//
+//		if( AlphaBaseImageFormat >= 0 )
+//		{
+//			if( AlphaBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT2 || AlphaBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT4 )
+//			{
+//				AlphaConvFlag = TRUE ;
+//			}
+//		}
+//	}
+//	else
+//	{
+//		if( RgbBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT1 ||
+//			RgbBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT2 ||
+//			RgbBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT3 ||
+//			RgbBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT4 ||
+//			RgbBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT5 ||
+//			RgbBaseImageFormat == DX_BASEIMAGE_FORMAT_BC7_UNORM ||
+//			RgbBaseImageFormat == DX_BASEIMAGE_FORMAT_BC7_UNORM_SRGB )
+//		{
+//			RgbConvFlag = TRUE ;
+//		}
+//
+//		if( AlphaBaseImageFormat >= 0 )
+//		{
+//			if( AlphaBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT1 ||
+//				AlphaBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT2 ||
+//				AlphaBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT3 ||
+//				AlphaBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT4 ||
+//				AlphaBaseImageFormat == DX_BASEIMAGE_FORMAT_DXT5 ||
+//				AlphaBaseImageFormat == DX_BASEIMAGE_FORMAT_BC7_UNORM ||
+//				AlphaBaseImageFormat == DX_BASEIMAGE_FORMAT_BC7_UNORM_SRGB )
+//			{
+//				AlphaConvFlag = TRUE ;
+//			}
+//		}
+//	}
 
 	if( RequiredRgbBaseImageConvFlag != NULL )
 	{
@@ -13256,7 +13266,7 @@ extern	int		Graphics_Hardware_DrawFillBox_PF( int x1, int y1, int x2, int y2, un
 }
 
 // ハードウエアアクセラレータ使用版 DrawLineBox
-extern	int		Graphics_Hardware_DrawLineBox_PF( int x1, int y1, int x2, int y2, unsigned int Color )
+extern	int		Graphics_Hardware_DrawLineBox_PF( int x1, int y1, int x2, int y2, unsigned int Color, int Thickness )
 {
 	VERTEX_NOTEX_2D *VertData ;
 	int Red, Green, Blue ;
@@ -13374,48 +13384,108 @@ extern	int		Graphics_Hardware_DrawLineBox_PF( int x1, int y1, int x2, int y2, un
 	VertData[22].rhw = 1.0f ;
 	VertData[23].rhw = 1.0f ;
 
-	VertData[0].pos.x = fx1			; VertData[0].pos.y = fy1		 ;
-	VertData[1].pos.x = fx2			; VertData[1].pos.y = fy1		 ;
-	VertData[2].pos.x = fx1			; VertData[2].pos.y = fy1 + 1.0f ;
+	if( Thickness <= 1 )
+	{
+		VertData[0].pos.x = fx1			; VertData[0].pos.y = fy1		 ;
+		VertData[1].pos.x = fx2			; VertData[1].pos.y = fy1		 ;
+		VertData[2].pos.x = fx1			; VertData[2].pos.y = fy1 + 1.0f ;
 
-	VertData[3].pos.x = fx2			; VertData[3].pos.y = fy1 + 1.0f ;
-	VertData[4].pos.x = fx1			; VertData[4].pos.y = fy1 + 1.0f ;
-	VertData[5].pos.x = fx2			; VertData[5].pos.y = fy1		 ;
+		VertData[3].pos.x = fx2			; VertData[3].pos.y = fy1 + 1.0f ;
+		VertData[4].pos.x = fx1			; VertData[4].pos.y = fy1 + 1.0f ;
+		VertData[5].pos.x = fx2			; VertData[5].pos.y = fy1		 ;
 
-	VertData += 6 ;
-
-
-	VertData[0].pos.x = fx2 - 1.0f	; VertData[0].pos.y = fy1 + 1.0f ;
-	VertData[1].pos.x = fx2			; VertData[1].pos.y = fy1 + 1.0f ;
-	VertData[2].pos.x = fx2	- 1.0f	; VertData[2].pos.y = fy2		 ;
-
-	VertData[3].pos.x = fx2			; VertData[3].pos.y = fy2		 ;
-	VertData[4].pos.x = fx2 - 1.0f	; VertData[4].pos.y = fy2		 ;
-	VertData[5].pos.x = fx2			; VertData[5].pos.y = fy1 + 1.0f ;
-
-	VertData += 6 ;
+		VertData += 6 ;
 
 
-	VertData[0].pos.x = fx1			; VertData[0].pos.y = fy1 + 1.0f ;
-	VertData[1].pos.x = fx1 + 1.0f	; VertData[1].pos.y = fy1 + 1.0f ;
-	VertData[2].pos.x = fx1			; VertData[2].pos.y = fy2		 ;
+		VertData[0].pos.x = fx2 - 1.0f	; VertData[0].pos.y = fy1 + 1.0f ;
+		VertData[1].pos.x = fx2			; VertData[1].pos.y = fy1 + 1.0f ;
+		VertData[2].pos.x = fx2	- 1.0f	; VertData[2].pos.y = fy2		 ;
 
-	VertData[3].pos.x = fx1 + 1.0f	; VertData[3].pos.y = fy2		 ;
-	VertData[4].pos.x = fx1			; VertData[4].pos.y = fy2		 ;
-	VertData[5].pos.x = fx1 + 1.0f	; VertData[5].pos.y = fy1 + 1.0f ;
+		VertData[3].pos.x = fx2			; VertData[3].pos.y = fy2		 ;
+		VertData[4].pos.x = fx2 - 1.0f	; VertData[4].pos.y = fy2		 ;
+		VertData[5].pos.x = fx2			; VertData[5].pos.y = fy1 + 1.0f ;
 
-	VertData += 6 ;
+		VertData += 6 ;
 
 
-	VertData[0].pos.x = fx1 + 1.0f	; VertData[0].pos.y = fy2 - 1.0f ;
-	VertData[1].pos.x = fx2 - 1.0f	; VertData[1].pos.y = fy2 - 1.0f ;
-	VertData[2].pos.x = fx1 + 1.0f	; VertData[2].pos.y = fy2		 ;
+		VertData[0].pos.x = fx1			; VertData[0].pos.y = fy1 + 1.0f ;
+		VertData[1].pos.x = fx1 + 1.0f	; VertData[1].pos.y = fy1 + 1.0f ;
+		VertData[2].pos.x = fx1			; VertData[2].pos.y = fy2		 ;
 
-	VertData[3].pos.x = fx2 - 1.0f	; VertData[3].pos.y = fy2		 ;
-	VertData[4].pos.x = fx1 + 1.0f	; VertData[4].pos.y = fy2		 ;
-	VertData[5].pos.x = fx2 - 1.0f	; VertData[5].pos.y = fy2 - 1.0f ;
+		VertData[3].pos.x = fx1 + 1.0f	; VertData[3].pos.y = fy2		 ;
+		VertData[4].pos.x = fx1			; VertData[4].pos.y = fy2		 ;
+		VertData[5].pos.x = fx1 + 1.0f	; VertData[5].pos.y = fy1 + 1.0f ;
 
-	VertData += 6 ;
+		VertData += 6 ;
+
+
+		VertData[0].pos.x = fx1 + 1.0f	; VertData[0].pos.y = fy2 - 1.0f ;
+		VertData[1].pos.x = fx2 - 1.0f	; VertData[1].pos.y = fy2 - 1.0f ;
+		VertData[2].pos.x = fx1 + 1.0f	; VertData[2].pos.y = fy2		 ;
+
+		VertData[3].pos.x = fx2 - 1.0f	; VertData[3].pos.y = fy2		 ;
+		VertData[4].pos.x = fx1 + 1.0f	; VertData[4].pos.y = fy2		 ;
+		VertData[5].pos.x = fx2 - 1.0f	; VertData[5].pos.y = fy2 - 1.0f ;
+
+		VertData += 6 ;
+	}
+	else
+	{
+		float InT, OutT ;
+		if( ( Thickness & 1 ) != 0 )
+		{
+			OutT = ( float )( Thickness >> 1 ) ;
+			InT  = ( float )( ( Thickness >> 1 ) + 1 ) ;
+		}
+		else
+		{
+			OutT = ( float )( ( Thickness >> 1 ) - 1 ) ;
+			InT  = ( float )( ( Thickness >> 1 ) + 1 ) ;
+		}
+
+		VertData[0].pos.x = fx1 - OutT  ; VertData[0].pos.y = fy1 - OutT ;
+		VertData[1].pos.x = fx2 + OutT  ; VertData[1].pos.y = fy1 - OutT ;
+		VertData[2].pos.x = fx1 - OutT  ; VertData[2].pos.y = fy1 + InT  ;
+
+		VertData[3].pos.x = fx2 + OutT  ; VertData[3].pos.y = fy1 + InT  ;
+		VertData[4].pos.x = fx1 - OutT  ; VertData[4].pos.y = fy1 + InT  ;
+		VertData[5].pos.x = fx2 + OutT  ; VertData[5].pos.y = fy1 - OutT ;
+
+		VertData += 6 ;
+
+
+		VertData[0].pos.x = fx2 - InT	; VertData[0].pos.y = fy1 + InT  ;
+		VertData[1].pos.x = fx2	+ OutT	; VertData[1].pos.y = fy1 + InT  ;
+		VertData[2].pos.x = fx2	- InT	; VertData[2].pos.y = fy2 + OutT ;
+
+		VertData[3].pos.x = fx2 + OutT  ; VertData[3].pos.y = fy2 + OutT ;
+		VertData[4].pos.x = fx2	- InT	; VertData[4].pos.y = fy2 + OutT ;
+		VertData[5].pos.x = fx2	+ OutT	; VertData[5].pos.y = fy1 + InT  ;
+
+		VertData += 6 ;
+
+
+		VertData[0].pos.x = fx1	- OutT  ; VertData[0].pos.y = fy1 + InT  ;
+		VertData[1].pos.x = fx1 + InT   ; VertData[1].pos.y = fy1 + InT  ;
+		VertData[2].pos.x = fx1	- OutT  ; VertData[2].pos.y = fy2 + OutT ;
+
+		VertData[3].pos.x = fx1 + InT   ; VertData[3].pos.y = fy2 + OutT ;
+		VertData[4].pos.x = fx1	- OutT  ; VertData[4].pos.y = fy2 + OutT ;
+		VertData[5].pos.x = fx1 + InT   ; VertData[5].pos.y = fy1 + InT  ;
+
+		VertData += 6 ;
+
+
+		VertData[0].pos.x = fx1 + InT   ; VertData[0].pos.y = fy2 - InT  ;
+		VertData[1].pos.x = fx2 - InT   ; VertData[1].pos.y = fy2 - InT  ;
+		VertData[2].pos.x = fx1 + InT   ; VertData[2].pos.y = fy2 + OutT ;
+
+		VertData[3].pos.x = fx2 - InT   ; VertData[3].pos.y = fy2 + OutT ;
+		VertData[4].pos.x = fx1 + InT   ; VertData[4].pos.y = fy2 + OutT ;
+		VertData[5].pos.x = fx2 - InT   ; VertData[5].pos.y = fy2 - InT  ;
+
+		VertData += 6 ;
+	}
 
 	// 頂点の追加
 	ADD4VERTEX_LINEBOX
@@ -17681,6 +17751,41 @@ extern	int		Graphics_Hardware_SetFogDensity_PF( float density )
 	return 0 ;
 }
 
+// 高さフォグを有効にするかどうかを設定する( TRUE:有効  FALSE:無効 )
+extern	int		Graphics_Hardware_SetVerticalFogEnable_PF( int Flag )
+{
+	// 未実装
+	return 0 ;
+}
+
+// 高さフォグモードを設定する
+extern	int		Graphics_Hardware_SetVerticalFogMode_PF( int Mode /* DX_FOGMODE_NONE 等 */ )
+{
+	// 未実装
+	return 0 ;
+}
+
+// 高さフォグカラーを変更する
+extern	int		Graphics_Hardware_SetVerticalFogColor_PF( DWORD FogColor )
+{
+	// 未実装
+	return 0 ;
+}
+
+// 高さフォグが始まる距離と終了する距離を設定する( 0.0f ～ 1.0f )
+extern	int		Graphics_Hardware_SetVerticalFogStartEnd_PF( float start, float end )
+{
+	// 未実装
+	return 0 ;
+}
+
+// 高さフォグの密度を設定する( 0.0f ～ 1.0f )
+extern	int		Graphics_Hardware_SetVerticalFogDensity_PF( float start, float density )
+{
+	// 未実装
+	return 0 ;
+}
+
 // ワールド変換用行列をセットする
 extern	int		Graphics_Hardware_DeviceDirect_SetWorldMatrix_PF( const MATRIX *Matrix )
 {
@@ -19097,6 +19202,7 @@ static int Graphics_Linux_BltBmpOrBaseImageToGraph3_MipMapBlt(
 	void		*ImageBuffer ;
 	int			i ;
 	int			j ;
+	int			k ;
 	DWORD		MipMapCount ;
 	const COLORDATA			*DestColor ;
 	PIXELFORMAT_INFO_LINUX	*PixelFormat ;
@@ -19173,6 +19279,7 @@ static int Graphics_Linux_BltBmpOrBaseImageToGraph3_MipMapBlt(
 		void	*Image2 ;
 		void	*ImageD ;
 		void	*ImageS ;
+		void	*ImageTmp ;
 		int		ImagePitch ;
 		int		ImagePitchD ;
 		int		ImagePitchS ;
@@ -19197,7 +19304,7 @@ static int Graphics_Linux_BltBmpOrBaseImageToGraph3_MipMapBlt(
 
 		if( ASyncThread )
 		{
-			ImageBuffer = DXALLOC( ( size_t )( ImageSize * 2 ) ) ;
+			ImageBuffer = DXALLOC( ( size_t )( ImageSize * 3 ) ) ;
 			if( ImageBuffer == NULL )
 			{
 				DXST_LOGFILE_ADDUTF16LE( "\xc6\x30\xaf\x30\xb9\x30\xc1\x30\xe3\x30\x78\x30\xe2\x8e\x01\x90\x59\x30\x8b\x30\x3b\x75\xcf\x50\x92\x30\x00\x4e\x42\x66\x84\x76\x6b\x30\x3c\x68\x0d\x7d\x59\x30\x8b\x30\xe1\x30\xe2\x30\xea\x30\x18\x98\xdf\x57\x6e\x30\xba\x78\xdd\x4f\x6b\x30\x31\x59\x57\x65\x57\x30\x7e\x30\x57\x30\x5f\x30\x0a\x00\x00"/*@ L"テクスチャへ転送する画像を一時的に格納するメモリ領域の確保に失敗しました\n" @*/ ) ;
@@ -19206,7 +19313,7 @@ static int Graphics_Linux_BltBmpOrBaseImageToGraph3_MipMapBlt(
 		}
 		else
 		{
-			if( Graphics_Linux_Texture_SetupCommonBuffer( ( unsigned int )( ImageSize * 2 ) ) < 0 )
+			if( Graphics_Linux_Texture_SetupCommonBuffer( ( unsigned int )( ImageSize * 3 ) ) < 0 )
 			{
 				return -1 ;
 			}
@@ -19214,6 +19321,7 @@ static int Graphics_Linux_BltBmpOrBaseImageToGraph3_MipMapBlt(
 		}
 		Image1      = ImageBuffer ;
 		Image2      = ( BYTE * )Image1 + ImageSize ;
+		ImageTmp	= ( BYTE * )Image2 + ImageSize ;
 
 		RgbImageSize   = RgbBaseImage->Pitch   * RgbBaseImage->Height ;
 		AlphaImageSize = AlphaBaseImage->Pitch * AlphaBaseImage->Height ;
@@ -19263,6 +19371,8 @@ static int Graphics_Linux_BltBmpOrBaseImageToGraph3_MipMapBlt(
 				// テクスチャに転送
 				{
 					RECT TempRect ;
+					int ih, iw, ip ;
+					BYTE *id, *is ;
 
 					TempRect.left   = DestRect->left   >> j ;
 					TempRect.top    = DestRect->top    >> j ;
@@ -19277,6 +19387,18 @@ static int Graphics_Linux_BltBmpOrBaseImageToGraph3_MipMapBlt(
 						TempRect.bottom = TempRect.top + 1 ;
 					}
 
+					ih = TempRect.bottom - TempRect.top ;
+					iw = TempRect.right - TempRect.left ;
+					ip = iw * DestColor->PixelByte ;
+					is = ( BYTE * )ImageD ;
+					id = ( BYTE * )ImageTmp ;
+					for( k = 0 ; k < ih; k++ )
+					{
+						_MEMCPY( id, is, ip ) ;
+						id += ip ;
+						is += ImagePitchD ;
+					}
+
 					glTexSubImage2D_ASync(
 						UseTex,
 						GL_TEXTURE_2D,
@@ -19287,7 +19409,7 @@ static int Graphics_Linux_BltBmpOrBaseImageToGraph3_MipMapBlt(
 						TempRect.bottom - TempRect.top,
 						PixelFormat->Format,
 						PixelFormat->Type,
-						ImageD,
+						ImageTmp,
 						ASyncThread
 					) ;
 				}
@@ -20078,6 +20200,12 @@ extern	int		Graphics_Hardware_Light_SetNoAngleAttenuation_PF( int NoAngleAttenua
 	return 0 ;
 }
 
+// ライトの計算でハーフランバートを使用するかどうかを設定する
+extern	int		Graphics_Hardware_Light_SetUseHalfLambert_PF( int UseHalfLambert )
+{
+	// 未実装
+	return 0 ;
+}
 
 
 
@@ -20755,6 +20883,11 @@ extern unsigned int GetGraphOpenGLESTextureObject( int GrHandle )
 	return Image->Hard.Draw[ 0 ].Tex->PF->Texture.TextureBuffer ;
 }
 
+// サブバックバッファテクスチャのテクスチャオブジェクトを取得する
+extern unsigned int GetSubBackbufferOpenGLESTextureObject( void )
+{
+	return GLINUX.Device.Screen.SubBackBufferTexture ;
+}
 
 // ＤＸライブラリが行った OpenGL ES の設定を再度行う( 特殊用途 )
 extern int RefreshDxLibOpenGLESSetting( void )

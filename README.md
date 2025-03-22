@@ -90,7 +90,7 @@ Xubuntu 20.04
 
 一部、手動および自動変換されたDXライブラリのコードが含まれています。
 
-DX Library Copyright (C) 2001-2024 Takumi Yamada.
+DX Library Copyright (C) 2001-2025 Takumi Yamada.
 
 また、依存関係の都合でVorbisのヘッダーファイルが含まれています。
 
