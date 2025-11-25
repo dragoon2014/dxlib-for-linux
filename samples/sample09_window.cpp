@@ -10,6 +10,7 @@ int main(){
     SetWindowMaximizeButtonBehavior(1);
 #endif
     SetGraphMode(800, 600, 0, 0);
+    SetMainWindowText("fail");
     if(DxLib_Init() == -1){
         return -1;
     }
