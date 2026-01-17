@@ -19,6 +19,10 @@ extern int NS_GetWindowSize(int *Width, int *Height){
 extern int NS_SetMainWindowText(const TCHAR *WindowText){
     Display* d = GLINUX.Device.Screen.XDisplay;
     Window w = GLINUX.Device.Screen.XWindow;
+    // [本家非互換]ウィンドウが存在していない場合は反映されない
+    if((!d)||(!w)){
+        return -1;
+    }
     Xutf8SetWMProperties(d, w, WindowText, NULL, NULL, 0, NULL, NULL, NULL);
     return 0;
 }
